@@ -67,6 +67,15 @@ const Settings: React.FC = () => {
         setValue("leaderName", info.leaderName);
         setValue("VillageCode", info.VillageCode);
         setValue("kasipemerintah", info.kasipemerintah);
+        setValue("sekretaris", info.sekretaris);
+        setValue("kaurUmumNTataUsaha", info.kaurUmumNTataUsaha);
+        setValue("kaurKeuangan", info.kaurKeuangan);
+        setValue("kaurPerencanaan", info.kaurPerencanaan);
+        setValue("kasiKesejahteraan", info.kasiKesejahteraan);
+        setValue("kasiPelayanan", info.kasiPelayanan);
+        setValue("kadus1", info.kadus1);
+        setValue("kadus2", info.kadus2);
+        setValue("kadus3", info.kadus3);
       }
     } catch (error) {
       console.error("Error loading village info:", error);
@@ -267,11 +276,83 @@ const Settings: React.FC = () => {
             />
 
             <Input
+              label="Nama Sekretaris Desa"
+              {...register("sekretaris", {
+                required: "Nama Sekretaris Desa Wajib diisi",
+              })}
+              error={errors.sekretaris?.message}
+              fullWidth
+            />
+            <Input
+              label="Nama Kaur Umum dan Tata Usaha"
+              {...register("kaurUmumNTataUsaha", {
+                required: "Nama kaur Umum dan Tata Usaha wajib diisi",
+              })}
+              error={errors.kaurUmumNTataUsaha?.message}
+              fullWidth
+            />
+            <Input
+              label="Nama Kaur Keuangan"
+              {...register("kaurKeuangan", {
+                required: "Nama kaur keuangan wajib diisi",
+              })}
+              error={errors.kaurKeuangan?.message}
+              fullWidth
+            />
+            <Input
+              label="Nama Kaur Perencanaan"
+              {...register("kaurPerencanaan", {
+                required: "Nama kaur Perencanaan",
+              })}
+              error={errors.kaurPerencanaan?.message}
+              fullWidth
+            />
+            <Input
               label="Nama Kasi Pemerintah"
               {...register("kasipemerintah", {
                 required: "Nama Kasi pemerintah wajib diisi",
               })}
               error={errors.kasipemerintah?.message}
+              fullWidth
+            />
+            <Input
+              label="Nama Kasi Kesejahteraan"
+              {...register("kasiKesejahteraan", {
+                required: "Nama Kasi Kesejahteraan wajib diisi",
+              })}
+              error={errors.kasiKesejahteraan?.message}
+              fullWidth
+            />
+            <Input
+              label="Nama Kasi Pelayanan"
+              {...register("kasiPelayanan", {
+                required: "Nama kaur Pelayanan wajib diisi",
+              })}
+              error={errors.kasiPelayanan?.message}
+              fullWidth
+            />
+            <Input
+              label="Nama Kadus I"
+              {...register("kadus1", {
+                required: "Nama Kadus I wajib diisi",
+              })}
+              error={errors.kadus1?.message}
+              fullWidth
+            />
+            <Input
+              label="Nama Kadus II"
+              {...register("kadus2", {
+                required: "Nama Kadus II Usaha wajib diisi",
+              })}
+              error={errors.kadus2?.message}
+              fullWidth
+            />
+            <Input
+              label="Nama Kadus III"
+              {...register("kadus3", {
+                required: "Nama Kadus III wajib diisi",
+              })}
+              error={errors.kadus3?.message}
               fullWidth
             />
           </div>

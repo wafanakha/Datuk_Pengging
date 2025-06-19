@@ -152,7 +152,16 @@ export interface VillageInfo {
   VillageCode: string;
   phoneNumber: string;
   leaderName: string;
+  sekretaris: string;
+  kaurUmumNTataUsaha: string;
+  kaurKeuangan: string;
+  kaurPerencanaan: string;
   kasipemerintah: string;
+  kasiKesejahteraan: string;
+  kasiPelayanan: string;
+  kadus1: string;
+  kadus2: string;
+  kadus3: string;
 }
 
 export interface LetterHistory {

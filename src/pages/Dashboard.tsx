@@ -156,10 +156,6 @@ const Dashboard: React.FC = () => {
               <p className="text-gray-900">{village.leaderName}</p>
             </div>
             <div className="space-y-2">
-              <p className="font-semibold text-gray-700">Kasi Pemerintah</p>
-              <p className="text-gray-900">{village.kasipemerintah}</p>
-            </div>
-            <div className="space-y-2">
               <p className="font-semibold text-gray-700">Total Warga</p>
               <p className="text-gray-900">
                 {isLoading
