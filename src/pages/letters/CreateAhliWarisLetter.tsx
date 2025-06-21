@@ -120,6 +120,7 @@ const CreateAhliWarisLetter: React.FC = () => {
     doc.setFont("Times", "Bold");
     doc.setFontSize(12);
     doc.text("SURAT KETERANGAN AHLI WARIS", 105, 48, { align: "center" });
+    doc.setLineWidth(0.7);
     doc.setFont("Times", "Normal");
     doc.setFontSize(11);
     doc.text(`Nomor : ${letterNumber || "145/           /III/2025"}`, 105, 55, {

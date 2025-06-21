@@ -74,9 +74,9 @@ const generatePDF = (
 
   // Isi Surat
   const isi1 =
-    "Dengan ini menyatakan yang sesungguhnya dan sebenarnya, bahwa saya sampai saat ini belum pernah menikah dengan seorang Perempuan, baik secara resmi maupun di bawah tangan (masih Lajang). Surat pernyataan ini saya buat untuk melengkapi persyaratan menikah.";
+    "     Dengan ini menyatakan yang sesungguhnya dan sebenarnya, bahwa saya sampai saat ini belum pernah menikah dengan seorang Perempuan, baik secara resmi maupun di bawah tangan (masih Lajang). Surat pernyataan ini saya buat untuk melengkapi persyaratan menikah.";
   const isi2 =
-    "Demikian surat pernyataan ini saya buat, dan ditanda tangani dalam keadaan sehat jasmani dan rohani, tanpa ada paksaan dan bujukan dari siapapun, dan apabila surat pernyataan ini tidak benar, maka saya sedia bertanggung jawab di hadapan hukum yang berlaku.";
+    "     Demikian surat pernyataan ini saya buat, dan ditanda tangani dalam keadaan sehat jasmani dan rohani, tanpa ada paksaan dan bujukan dari siapapun, dan apabila surat pernyataan ini tidak benar, maka saya sedia bertanggung jawab di hadapan hukum yang berlaku.";
   doc.text(doc.splitTextToSize(isi1, pageWidth - 40), 20, y);
   y += doc.getTextDimensions(doc.splitTextToSize(isi1, pageWidth - 40)).h + 2;
   doc.text(doc.splitTextToSize(isi2, pageWidth - 40), 20, y);
@@ -84,23 +84,27 @@ const generatePDF = (
 
   // Tanggal & TTD
   doc.text(
-    `${village.name}, ${
-      issuedDate && new Date(issuedDate).toLocaleDateString("id-ID")
-    }`,
+    `${village.name}, ${new Date().toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    })}`,
     pageWidth - 90,
     y,
     { align: "left" }
   );
   y += 7;
-  doc.text("Yang menyatakan", 20, y);
-  doc.text("Mengetahui", pageWidth - 90, y, { align: "left" });
+  doc.text("Yang menyatakan", pageWidth - 90, y);
+  y += 30;
+  doc.text(resident.name, pageWidth - 75, y, { align: "right" });
+  y += 10;
+  doc.text("Mengetahui", pageWidth / 2 - 20, y, { align: "left" });
   y += 7;
-  doc.text(`Kepala Desa ${village.name}`, pageWidth - 90, y, {
+  doc.text(`Kepala Desa ${village.name}`, pageWidth / 2 - 40, y, {
     align: "left",
   });
   y += 30;
-  doc.text(resident.name, 30, y, { align: "right" });
-  doc.text(village.leaderName, pageWidth - 90, y, {
+  doc.text(village.leaderName, pageWidth / 2 - 23, y, {
     align: "left",
   });
 
