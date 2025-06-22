@@ -128,12 +128,9 @@ const CreateSkckLetter: React.FC<{
     y += 7;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.text(
-      `Nomor: ${form.letterNumber || "_________/SKCK/[BULAN]/[TAHUN]"}`,
-      pageWidth / 2,
-      y,
-      { align: "center" }
-    );
+    doc.text(`Nomor: ${form.letterNumber || "_________"}`, pageWidth / 2, y, {
+      align: "center",
+    });
     y += 8;
     // Pembuka
     doc.text(
@@ -169,7 +166,7 @@ const CreateSkckLetter: React.FC<{
     });
     y += 2;
     doc.text(
-      `Berdasakan Surat Keterangan dari Ketua Rukun Warga Nomor ${
+      `     Berdasakan Surat Keterangan dari Ketua Rukun Warga Nomor ${
         form.rt
       } Tanggal ${
         form.rtDate
@@ -182,40 +179,37 @@ const CreateSkckLetter: React.FC<{
     );
     y += 12;
     doc.text(
-      `Surat keterangan ini diperlukan untuk ${form.keperluan || "..."} `,
+      `     Surat keterangan ini diperlukan untuk ${form.keperluan || "..."} `,
       15,
       y,
       { maxWidth: pageWidth - 30 }
     );
     y += 10;
     doc.text(
-      "Demikian Surat Keterangan ini kami buat atas permintaan yang bersangkutan dan dapat dipergunakan sebagaimana mestinya.",
+      "     Demikian Surat Keterangan ini kami buat atas permintaan yang bersangkutan dan dapat dipergunakan sebagaimana mestinya.",
       15,
       y,
       { maxWidth: pageWidth - 30 }
     );
     y += 14;
     // Footer info
-    doc.text("No. Reg", 18, y);
-    doc.text(":", 40, y);
-    doc.text(form.regNumber || "_________", 45, y);
+    doc.text("No. Reg", 90, y);
+    doc.text(":", 105, y);
+    doc.text(form.regNumber || "_________", 110, y);
     y += 7;
-    doc.text("Tanggal", 18, y);
-    doc.text(":", 40, y);
+    doc.text("Tanggal", 90, y);
+    doc.text(":", 105, y);
     doc.text(
       form.regDate
         ? new Date(form.regDate).toLocaleDateString("id-ID")
         : "__________",
-      45,
+      110,
       y
     );
     // TTD
     let ttdY = y + 14;
     // Pemohon kiri
-    doc.text("Pemohon", 30, ttdY);
     // Camat tengah
-    doc.text("Mengetahui,", pageWidth / 2, ttdY, { align: "center" });
-    doc.text("Camat Patikraja", pageWidth / 2, ttdY + 6, { align: "center" });
     // Pejabat kanan
     doc.text(
       `Kedungwringin, ${new Date().toLocaleDateString("id-ID", {
@@ -230,18 +224,16 @@ const CreateSkckLetter: React.FC<{
     doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 15, ttdY + 6, {
       align: "right",
     });
-    doc.text("KASI PEMERINTAH", pageWidth - 15, ttdY + 12, { align: "right" });
+    doc.text("KASI PEMERINTAH", pageWidth - 15, (ttdY += 12), {
+      align: "right",
+    });
+    doc.text("Pemohon", 30, ttdY);
     // TTD space
     ttdY += 32;
-    doc.text(form.nama || "(................................)", 30, ttdY, {
+    doc.text(form.nama || "(................................)", 37, ttdY, {
       align: "center",
     });
-    doc.text(
-      form.namaCamat || "(................................)",
-      pageWidth / 2,
-      ttdY,
-      { align: "center" }
-    );
+
     doc.text(
       villageInfo?.kasipemerintah?.trim()
         ? villageInfo.kasipemerintah
@@ -249,6 +241,15 @@ const CreateSkckLetter: React.FC<{
       pageWidth - 15,
       ttdY,
       { align: "right" }
+    );
+    doc.text("Mengetahui,", pageWidth / 2, (ttdY -= 12), { align: "center" });
+    doc.text("Camat Patikraja", pageWidth / 2, ttdY + 6, { align: "center" });
+    ttdY += 35;
+    doc.text(
+      form.namaCamat || "(................................)",
+      pageWidth / 2,
+      ttdY,
+      { align: "center" }
     );
     return doc;
   };
@@ -697,7 +698,7 @@ const CreateSkckLetter: React.FC<{
                 <p>Mengetahui,</p>
                 <p>Camat Patikraja</p>
               </div>
-              <div style={{ marginTop: "auto" }}>
+              <div style={{ marginTop: "100" }}>
                 <div
                   className="ttd-space"
                   style={{
