@@ -215,22 +215,25 @@ const CreateKeteranganLetter: React.FC = () => {
       y,
       { align: "right" }
     );
-    y += 6;
-    doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 20, y, {
-      align: "right",
-    });
-    y += 6;
-    doc.text("KASI PEMERINTAH", pageWidth - 35, y, { align: "right" });
-    y += 24;
+    let perangkatY = y + 6;
+    if (signer && !signer.jabatan.toLowerCase().includes("kepala desa")) {
+      doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 20, perangkatY, { align: "right" });
+      perangkatY += 6;
+    }
     doc.text(
-      villageInfo?.kasipemerintah?.trim()
-        ? villageInfo.kasipemerintah
-        : "(................................)",
-      pageWidth - 45,
-      y,
+      (signer?.jabatan?.toUpperCase() || "(................................)"),
+      pageWidth - 20,
+      perangkatY,
       { align: "right" }
     );
-    doc.text(form.nama, 30, y);
+    perangkatY += 24;
+    doc.text(
+      signer?.nama || "(................................)",
+      pageWidth - 20,
+      perangkatY,
+      { align: "right" }
+    );
+    doc.text(form.nama, 30, perangkatY);
     return doc;
   };
 

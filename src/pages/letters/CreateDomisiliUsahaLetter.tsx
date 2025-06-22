@@ -262,22 +262,27 @@ const CreateDomisiliUsahaLetter: React.FC<{
       140,
       y
     );
-    pdf.text("An. KEPALA DESA KEDUNGWRINGIN", 130, y + 5);
-    pdf.text("KASI PEMERINTAH", 143, y + 10);
+    let perangkatY = y + 5;
+    if (signer && !signer.jabatan.toLowerCase().includes("kepala desa")) {
+      pdf.text("An. KEPALA DESA KEDUNGWRINGIN", 130, perangkatY);
+      perangkatY += 5;
+    }
     pdf.text(
-      villageInfo?.kasipemerintah?.trim()
-        ? villageInfo.kasipemerintah
-        : "(................................)",
-      155,
-      y + 35
+      (signer?.jabatan?.toUpperCase() || "(................................)"),
+      143,
+      perangkatY
     );
-    y += 15;
-
+    perangkatY += 24;
+    pdf.text(
+      signer?.nama || "(................................)",
+      155,
+      perangkatY
+    );
     // Signatures
+    y += 15;
     pdf.text("Mengetahui", 30, y);
     pdf.text("Camat Patikraja", 25, y + 5);
     pdf.text(form.namaCamat || "[Nama Camat]", 34, y + 35);
-
     return pdf;
   };
 

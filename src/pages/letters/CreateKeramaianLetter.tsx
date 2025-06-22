@@ -302,20 +302,29 @@ const CreateKeramaianLetter: React.FC<{
       ttdY
     );
     doc.text("Camat Patikraja", pageWidth / 2, ttdY + 16, { align: "center" });
-    doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 80, ttdY + 6);
-    doc.text("KASI PEMERINTAH", pageWidth - 65, ttdY + 12);
+    // === Penandatangan kanan (perangkat desa, flexible) ===
+    let perangkatY = ttdY + 6;
+    if (signer && !signer.jabatan.toLowerCase().includes("kepala desa")) {
+      doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 20, perangkatY, { align: "right" });
+      perangkatY += 6;
+    }
+    doc.text(
+      (signer?.jabatan?.toUpperCase() || "(................................)"),
+      pageWidth - 20,
+      perangkatY,
+      { align: "right" }
+    );
+    perangkatY += 24;
+    doc.text(
+      signer?.nama || "(................................)",
+      pageWidth - 20,
+      perangkatY,
+      { align: "right" }
+    );
     // Spacer tanda tangan
-
     doc.text(
       form.nama && form.nama.trim() ? `(${form.nama})` : "()",
       30,
-      ttdY + 35
-    );
-    doc.text(
-      villageInfo?.kasipemerintah?.trim()
-        ? `(${villageInfo.kasipemerintah})`
-        : "()",
-      pageWidth - 55,
       ttdY + 35
     );
     doc.text(

@@ -225,17 +225,21 @@ const CreateDomisiliLetter: React.FC<{
       146,
       y
     );
-    y += 5;
-    doc.text("An. KEPALA DESA KEDUNGWRINGIN", 140, y);
-    y += 5;
-    doc.text("KASI PEMERINTAH", 152, y);
-    y += 30;
+    let perangkatY = y + 5;
+    if (signer && !signer.jabatan.toLowerCase().includes("kepala desa")) {
+      doc.text("An. KEPALA DESA KEDUNGWRINGIN", 140, perangkatY);
+      perangkatY += 5;
+    }
     doc.text(
-      villageInfo?.kasipemerintah?.trim()
-        ? villageInfo.kasipemerintah
-        : "(................................)",
+      (signer?.jabatan?.toUpperCase() || "(................................)"),
+      152,
+      perangkatY
+    );
+    perangkatY += 24;
+    doc.text(
+      signer?.nama || "(................................)",
       162,
-      y
+      perangkatY
     );
     return doc;
   };
