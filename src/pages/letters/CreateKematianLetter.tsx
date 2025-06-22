@@ -34,120 +34,6 @@ const initialForm = {
   nomorSurat: "",
 };
 
-function generateSuratKematianN6Pdf(form: any) {
-  const doc = new jsPDF();
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(12);
-  // Header
-  doc.setFontSize(10);
-  doc.text("KANTOR DESA", 10, 16);
-  doc.text(": Kedungwiringin", 50, 16);
-  doc.text("KECAMATAN", 10, 22);
-  doc.text(": Patikraja", 50, 22);
-  doc.text("KABUPATEN", 10, 28);
-  doc.text(": Banyumas", 50, 28);
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
-  doc.text("SURAT KETERANGAN KEMATIAN", 70, 38);
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.text(`Nomor : ${form.nomorSurat || "........"}`, 90, 44);
-  // Model N6
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.text("Model N6", 170, 15);
-  // Content
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.text(
-    "Yang bertanda tangan di bawah ini menerangkan dengan sesungguhnya bahwa :",
-    10,
-    54
-  );
-  // Section A
-  let y = 62;
-  doc.text(
-    `A. 1. Nama lengkap dan alias\t: ${form.deceasedName}${
-      form.deceasedAlias ? " / " + form.deceasedAlias : ""
-    }`,
-    10,
-    y
-  );
-  doc.text(`2. Bin/Binti\t\t\t\t: ${form.deceasedBinBinti}`, 10, y + 6);
-  doc.text(`3. Nomor Induk Kependudukan\t: ${form.deceasedNik}`, 10, y + 12);
-  doc.text(
-    `4. Tempat dan tanggal lahir\t\t: ${form.deceasedBirthPlace}, ${form.deceasedBirthDate}`,
-    10,
-    y + 18
-  );
-  doc.text(
-    `5. Kewarganegaraan\t\t\t\t: ${form.deceasedNationality}`,
-    10,
-    y + 24
-  );
-  doc.text(`6. Agama\t\t\t\t: ${form.deceasedReligion}`, 10, y + 30);
-  doc.text(`7. Pekerjaan\t\t\t\t: ${form.deceasedOccupation}`, 10, y + 36);
-  doc.text(`8. Alamat\t\t\t\t: ${form.deceasedAddress}`, 10, y + 42);
-  // Keterangan meninggal
-  doc.setFont("helvetica", "bold");
-  doc.text(
-    `Telah meninggal dunia pada tanggal\t: ${form.deathDate}`,
-    10,
-    y + 50
-  );
-  doc.text(`Di\t\t\t\t\t\t: ${form.deathPlace}`, 10, y + 56);
-  // Section B
-  doc.setFont("helvetica", "normal");
-  doc.text("Yang bersangkutan adalah suami/istri dari :", 10, y + 66);
-  let yB = y + 74;
-  doc.text(
-    `B. 1. Nama lengkap dan alias\t\t: ${form.spouseName}${
-      form.spouseAlias ? " / " + form.spouseAlias : ""
-    }`,
-    10,
-    yB
-  );
-  doc.text(`2. Bin/Binti\t\t\t\t: ${form.spouseBinBinti}`, 10, yB + 6);
-  doc.text(`3. Nomor Induk Kependudukan\t: ${form.spouseNik}`, 10, yB + 12);
-  doc.text(
-    `4. Tempat dan tanggal lahir\t\t: ${form.spouseBirthPlace}, ${form.spouseBirthDate}`,
-    10,
-    yB + 18
-  );
-  doc.text(
-    `5. Kewarganegaraan\t\t\t\t: ${form.spouseNationality}`,
-    10,
-    yB + 24
-  );
-  doc.text(`6. Agama\t\t\t\t: ${form.spouseReligion}`, 10, yB + 30);
-  doc.text(`7. Pekerjaan\t\t\t\t: ${form.spouseOccupation}`, 10, yB + 36);
-  doc.text(`8. Tempat tinggal\t\t\t\t: ${form.spouseAddress}`, 10, yB + 42);
-  // Penutup
-  doc.text(
-    "Demikianlah, surat keterangan ini dibuat dengan mengingat sumpah jabatan dan untuk digunakan seperlunya.",
-    10,
-    yB + 52
-  );
-  // Tanggal, jabatan, tanda tangan
-  doc.text(
-    `Kedungwiringin, ${
-      form.suratDate && new Date(form.suratDate).toLocaleDateString("id-ID")
-    }`,
-    120,
-    yB + 66
-  );
-  doc.text("Kepala Desa Kedungwiringin", 130, yB + 72);
-  doc.text(form.kepalaDesa || "", 140, yB + 92);
-  // Footer
-  doc.setFontSize(8);
-  doc.text(
-    "Lampiran X Keputusan Direktur Jendral Bimbingan Masyarakat Islam Nomor 473 Tahun 2020",
-    10,
-    285
-  );
-  return doc;
-}
-
 const CreateKematianLetter: React.FC = () => {
   const [form, setForm] = useState(initialForm);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -160,6 +46,144 @@ const CreateKematianLetter: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+
+  function generateSuratKematianN6Pdf(form: any) {
+    const doc = new jsPDF();
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
+    // Header
+    doc.setFontSize(10);
+    doc.text("KANTOR DESA", 10, 16);
+    doc.text(": Kedungwiringin", 50, 16);
+    doc.text("KECAMATAN", 10, 22);
+    doc.text(": Patikraja", 50, 22);
+    doc.text("KABUPATEN", 10, 28);
+    doc.text(": Banyumas", 50, 28);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("SURAT KETERANGAN KEMATIAN", 70, 38);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Nomor : ${form.nomorSurat || "........"}`, 90, 44);
+    // Model N6
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text("Model N6", 170, 15);
+    // Content
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(
+      "Yang bertanda tangan di bawah ini menerangkan dengan sesungguhnya bahwa :",
+      10,
+      54
+    );
+    // Section A
+    let y = 62;
+    let labelX = 20;
+    let valueX = 70;
+
+    doc.text("2. Bin/Binti", labelX, y + 6);
+    doc.text(`: ${form.deceasedBinBinti}`, valueX, y + 6);
+
+    doc.text("3. Nomor Induk Kependudukan", labelX, y + 12);
+    doc.text(`: ${form.deceasedNik}`, valueX, y + 12);
+
+    doc.text("4. Tempat dan tanggal lahir", labelX, y + 18);
+    doc.text(
+      `: ${form.deceasedBirthPlace}, ${form.deceasedBirthDate}`,
+      valueX,
+      y + 18
+    );
+
+    doc.text("5. Kewarganegaraan", labelX, y + 24);
+    doc.text(`: ${form.deceasedNationality}`, valueX, y + 24);
+
+    doc.text("6. Agama", labelX, y + 30);
+    doc.text(`: ${form.deceasedReligion}`, valueX, y + 30);
+
+    doc.text("7. Pekerjaan", labelX, y + 36);
+    doc.text(`: ${form.deceasedOccupation}`, valueX, y + 36);
+
+    doc.text("8. Alamat", labelX, y + 42);
+    doc.text(`: ${form.deceasedAddress}`, valueX, y + 42);
+
+    // Keterangan meninggal
+    doc.setFont("helvetica", "bold");
+    doc.text("Telah meninggal dunia pada tanggal", labelX, y + 50);
+    doc.text(`: ${form.deathDate}`, valueX, y + 50);
+
+    doc.text("Di", labelX, y + 56);
+    doc.text(`: ${form.deathPlace}`, valueX, y + 56);
+
+    // Section B
+    doc.setFont("helvetica", "normal");
+    doc.text("Yang bersangkutan adalah suami/istri dari :", labelX, y + 66);
+    let yB = y + 74;
+
+    doc.text("B. 1. Nama lengkap dan alias", labelX, yB);
+    doc.text(
+      `: ${form.spouseName}${form.spouseAlias ? " / " + form.spouseAlias : ""}`,
+      valueX,
+      yB
+    );
+
+    doc.text("2. Bin/Binti", labelX, yB + 6);
+    doc.text(`: ${form.spouseBinBinti}`, valueX, yB + 6);
+
+    doc.text("3. Nomor Induk Kependudukan", labelX, yB + 12);
+    doc.text(`: ${form.spouseNik}`, valueX, yB + 12);
+
+    doc.text("4. Tempat dan tanggal lahir", labelX, yB + 18);
+    doc.text(
+      `: ${form.spouseBirthPlace}, ${form.spouseBirthDate}`,
+      valueX,
+      yB + 18
+    );
+
+    doc.text("5. Kewarganegaraan", labelX, yB + 24);
+    doc.text(`: ${form.spouseNationality}`, valueX, yB + 24);
+
+    doc.text("6. Agama", labelX, yB + 30);
+    doc.text(`: ${form.spouseReligion}`, valueX, yB + 30);
+
+    doc.text("7. Pekerjaan", labelX, yB + 36);
+    doc.text(`: ${form.spouseOccupation}`, valueX, yB + 36);
+
+    doc.text("8. Tempat tinggal", labelX, yB + 42);
+    doc.text(`: ${form.spouseAddress}`, valueX, yB + 42);
+    // Penutup
+    doc.text(
+      "Demikianlah, surat keterangan ini dibuat dengan mengingat sumpah jabatan dan untuk digunakan seperlunya.",
+      10,
+      yB + 52
+    );
+    // Tanggal, jabatan, tanda tangan
+    doc.text(
+      `Kedungwiringin, ${new Date().toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })}`,
+      130,
+      yB + 66
+    );
+    doc.text("Kepala Desa Kedungwiringin", 130, yB + 72);
+    doc.text(
+      villageInfo?.kasipemerintah?.trim()
+        ? `(${villageInfo.kasipemerintah})`
+        : "()",
+      145,
+      yB + 100
+    );
+    // Footer
+    doc.setFontSize(8);
+    doc.text(
+      "Lampiran X Keputusan Direktur Jendral Bimbingan Masyarakat Islam Nomor 473 Tahun 2020",
+      10,
+      285
+    );
+    return doc;
+  }
 
   const handleExportPdf = () => {
     const doc = generateSuratKematianN6Pdf(form);
