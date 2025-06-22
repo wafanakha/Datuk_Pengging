@@ -26,6 +26,7 @@ interface PengantarFormData {
   keteranganLain: string;
   NoReg: string;
   tanggal?: string;
+  camat: string;
 }
 
 const initialForm: PengantarFormData = {
@@ -43,6 +44,7 @@ const initialForm: PengantarFormData = {
   letterNumber: "",
   keteranganLain: "",
   NoReg: "",
+  camat: "",
 };
 
 const CreatePengantarLetter: React.FC<{
@@ -159,7 +161,7 @@ const CreatePengantarLetter: React.FC<{
     y += 8;
     // Pembuka
     doc.text(
-      "Yang bertanda tangan di bawah ini, kami Kepala Desa Kedungwringin Kecamatan Patikraja Kabupaten Banyumas Provinsi Jawa Tengah, menerangkan bahwa:",
+      "     Yang bertanda tangan di bawah ini, kami Kepala Desa Kedungwringin Kecamatan Patikraja Kabupaten Banyumas Provinsi Jawa Tengah, menerangkan bahwa:",
       15,
       y,
       { maxWidth: pageWidth - 30 }
@@ -178,12 +180,13 @@ const CreatePengantarLetter: React.FC<{
       ["3. Warganegara", "Indonesia"],
       ["4. Agama", form.agama],
       ["5. Pekerjaan", form.pekerjaan],
-      ["6. Status Perkawinan", ""],
+      ["6. Status Perkawinan", `${form.statusKawin}`],
       ["7. Tempat Tinggal", `${form.alamat}`],
-      ["8. Surat Bukti diri", `NIK.${form.nik} | No. KK.`],
+      ["8. Surat Bukti diri", `NIK.${form.nik}`],
+      ["", `No. KK.${form.kk}`],
       ["9. Keperluan", `${form.keperluan}`],
-      ["10. Berlaku", ``],
-      ["10. Keterangan Lain", ``],
+      ["10. Berlaku", `${form.berlaku}`],
+      ["11. Keterangan Lain", `${form.keteranganLain}`],
     ];
     data.forEach(([label, value]) => {
       doc.text(label, 18, y);
@@ -191,49 +194,71 @@ const CreatePengantarLetter: React.FC<{
       doc.text(value || "-", 70, y);
       y += 7;
     });
-    y += 2;
+    y += 10;
     doc.text(
-      `Adalah benar warga Desa Kedungwringin dan surat ini dibuat untuk keperluan: ${
-        form.keperluan || "..."
-      } `,
+      "Demikian surat pengantar ini dibuat untuk dapat dipergunakan seperlunya.",
       15,
       y,
       { maxWidth: pageWidth - 30 }
     );
     y += 10;
+    // Footer info
+    doc.text("No. Reg", 90, y);
+    doc.text(":", 105, y);
+    doc.text(form.NoReg || "_________", 110, y);
+    y += 7;
+    doc.text("Tanggal", 90, y);
+    doc.text(":", 105, y);
     doc.text(
-      "Demikian surat pengantar ini dibuat untuk dapat dipergunakan sebagaimana mestinya.",
-      15,
-      y,
-      { maxWidth: pageWidth - 30 }
+      form.tanggal
+        ? new Date(form.tanggal).toLocaleDateString("id-ID")
+        : "__________",
+      110,
+      y
     );
-    y += 16;
-    // TTD
-    const ttdY = y;
+    let ttdY = y + 14;
+    // Pemohon kiri
+    // Camat tengah
+    // Pejabat kanan
     doc.text(
       `Kedungwringin, ${new Date().toLocaleDateString("id-ID", {
         day: "2-digit",
         month: "long",
         year: "numeric",
       })}`,
-      pageWidth - 15,
+      pageWidth - 23,
       ttdY,
       { align: "right" }
     );
-    y += 6;
-    doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 15, y, {
+    doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 15, ttdY + 6, {
       align: "right",
     });
-    y += 6;
-    doc.text("KASI PEMERINTAH", pageWidth - 15, y, { align: "right" });
-    y += 24;
+    doc.text("KASI PEMERINTAH", pageWidth - 30, (ttdY += 12), {
+      align: "right",
+    });
+    doc.text("Pemohon", 30, ttdY);
+    // TTD space
+    ttdY += 32;
+    doc.text(form.nama || "(................................)", 37, ttdY, {
+      align: "center",
+    });
+
     doc.text(
       villageInfo?.kasipemerintah?.trim()
         ? villageInfo.kasipemerintah
         : "(................................)",
-      pageWidth - 15,
-      y,
+      pageWidth - 35,
+      ttdY,
       { align: "right" }
+    );
+    doc.text("Mengetahui,", pageWidth / 2, (ttdY -= 12), { align: "center" });
+    doc.text("Camat Patikraja", pageWidth / 2, ttdY + 6, { align: "center" });
+    ttdY += 35;
+    doc.text(
+      form.camat || "(................................)",
+      pageWidth / 2,
+      ttdY,
+      { align: "center" }
     );
     return doc;
   };
@@ -320,7 +345,7 @@ const CreatePengantarLetter: React.FC<{
           className="input"
         />
         <input
-          name="KK"
+          name="kk"
           value={form.kk}
           onChange={handleChange}
           placeholder="KK"
@@ -347,7 +372,7 @@ const CreatePengantarLetter: React.FC<{
             />
             <label className="text-xs text-gray-600 mb-1">Berlaku sampai</label>
             <input
-              name="Berlaku"
+              name="berlaku"
               value={form.berlaku}
               onChange={handleChange}
               placeholder="Berlaku sampai"
@@ -356,7 +381,7 @@ const CreatePengantarLetter: React.FC<{
             />
             <label className="text-xs text-gray-600 mb-1">Tanggal</label>
             <input
-              name="Tanggal"
+              name="tanggal"
               value={form.tanggal}
               onChange={handleChange}
               placeholder="Tanggal"
@@ -394,7 +419,7 @@ const CreatePengantarLetter: React.FC<{
           className="input"
         />
         <input
-          name="status Perkawinan"
+          name="statusKawin"
           value={form.statusKawin}
           onChange={handleChange}
           placeholder="Status Perkawinan"
@@ -409,7 +434,7 @@ const CreatePengantarLetter: React.FC<{
         />
 
         <input
-          name="Keterangan Lain"
+          name="keteranganLain"
           value={form.keteranganLain}
           onChange={handleChange}
           placeholder="Keterangan lain"
@@ -423,10 +448,17 @@ const CreatePengantarLetter: React.FC<{
           className="input"
         />
         <input
-          name="No Reg"
+          name="NoReg"
           value={form.NoReg}
           onChange={handleChange}
           placeholder="No Reg"
+          className="input"
+        />
+        <input
+          name="camat"
+          value={form.camat}
+          onChange={handleChange}
+          placeholder="Nama Camat"
           className="input"
         />
       </form>
