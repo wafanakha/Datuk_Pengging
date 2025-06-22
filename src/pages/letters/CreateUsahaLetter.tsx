@@ -164,7 +164,7 @@ const CreateUsahaLetter: React.FC<{
     // Isi utama
     y += 2;
     doc.text(
-      `Berdasarkan Surat Keterangan dari Ketua Rukun Tetangga Nomor ${
+      `     Berdasarkan Surat Keterangan dari Ketua Rukun Tetangga Nomor ${
         form.rt
       } Tanggal ${
         form.rtDate
@@ -177,7 +177,7 @@ const CreateUsahaLetter: React.FC<{
       y,
       { maxWidth: pageWidth - 30 }
     );
-    y += 12;
+    y += 20;
     doc.text(
       `Surat Keterangan ini diperlukan untuk ${form.keperluan || "-"}.`,
       15,
@@ -201,22 +201,22 @@ const CreateUsahaLetter: React.FC<{
         month: "long",
         year: "numeric",
       })}`,
-      pageWidth - 15,
+      pageWidth - 30,
       ttdY,
       { align: "right" }
     );
     y += 6;
-    doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 15, y, {
+    doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 18, y, {
       align: "right",
     });
     y += 6;
-    doc.text("KASI PEMERINTAH", pageWidth - 15, y, { align: "right" });
+    doc.text("KASI PEMERINTAH", pageWidth - 35, y, { align: "right" });
     y += 24;
     doc.text(
       villageInfo?.kasipemerintah?.trim()
         ? villageInfo.kasipemerintah
         : "(................................)",
-      pageWidth - 15,
+      pageWidth - 43,
       y,
       { align: "right" }
     );
