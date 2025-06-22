@@ -218,12 +218,7 @@ const CreateDomisiliUsahaLetter: React.FC<{
       margin,
       y
     );
-    y += 15;
 
-    // Signatures
-    pdf.text("Mengetahui,", margin, y);
-    pdf.text("Camat Patikraja", margin, y + 5);
-    pdf.text(form.namaCamat || "[Nama Camat]", margin, y + 35);
     pdf.text(
       "Kedungwringin, " +
         new Date().toLocaleDateString("id-ID", {
@@ -231,18 +226,25 @@ const CreateDomisiliUsahaLetter: React.FC<{
           month: "long",
           year: "numeric",
         }),
-      130,
+      140,
       y
     );
     pdf.text("An. KEPALA DESA KEDUNGWRINGIN", 130, y + 5);
-    pdf.text("KASI PEMERINTAH", 130, y + 10);
+    pdf.text("KASI PEMERINTAH", 143, y + 10);
     pdf.text(
       villageInfo?.kasipemerintah?.trim()
         ? villageInfo.kasipemerintah
         : "(................................)",
-      130,
+      155,
       y + 35
     );
+    y += 15;
+
+    // Signatures
+    pdf.text("Mengetahui", 30, y);
+    pdf.text("Camat Patikraja", 25, y + 5);
+    pdf.text(form.namaCamat || "[Nama Camat]", 34, y + 35);
+
     return pdf;
   };
 
