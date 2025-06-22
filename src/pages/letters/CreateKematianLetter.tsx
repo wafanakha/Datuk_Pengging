@@ -167,13 +167,21 @@ const CreateKematianLetter: React.FC = () => {
       130,
       yB + 66
     );
-    doc.text("Kepala Desa Kedungwiringin", 130, yB + 72);
+    let perangkatY = yB + 72;
+    if (signer && !signer.jabatan.toLowerCase().includes("kepala desa")) {
+      doc.text("An. KEPALA DESA KEDUNGWRINGIN", 130, perangkatY);
+      perangkatY += 6;
+    }
     doc.text(
-      villageInfo?.kasipemerintah?.trim()
-        ? `(${villageInfo.kasipemerintah})`
-        : "()",
+      (signer?.jabatan?.toUpperCase() || "(................................)"),
+      130,
+      perangkatY
+    );
+    perangkatY += 24;
+    doc.text(
+      signer?.nama || "(................................)",
       145,
-      yB + 100
+      perangkatY
     );
     // Footer
     doc.setFontSize(8);
