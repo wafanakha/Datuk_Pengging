@@ -110,23 +110,22 @@ const CreateTidakMampuLetter: React.FC<{
     doc.text("PEMERINTAHAN DESA KEDUNGWRINGIN", pageWidth / 2, y, {
       align: "center",
     });
-    y += 7;
+    y += 5;
     doc.text("KECAMATAN PATIKRAJA KABUPATEN BANYUMAS", pageWidth / 2, y, {
       align: "center",
     });
-    y += 7;
-    doc.setFontSize(10);
+    y += 5;
     doc.text("SEKRETARIAT DESA", pageWidth / 2, y, { align: "center" });
-    y += 7;
+    y += 5;
     doc.text(
       "Jl. Raya Kedungwringin No. 1 Kedungwringin Kode Pos 53171",
       pageWidth / 2,
       y,
       { align: "center" }
     );
-    y += 7;
+    y += 5;
     doc.text("Telp. (0281) 638395", pageWidth / 2, y, { align: "center" });
-    y += 6;
+    y += 5;
     doc.setLineWidth(0.8);
     doc.line(15, y, pageWidth - 15, y);
     y += 5;
@@ -152,7 +151,7 @@ const CreateTidakMampuLetter: React.FC<{
     y += 8;
     // Pembuka
     doc.text(
-      "Yang bertanda tangan di bawah ini, kami Kepala Desa Kedungwringin Kecamatan Patikraja Kabupaten Banyumas Provinsi Jawa Tengah, menerangkan bahwa:",
+      "Yang bertanda tangan di bawah ini kami Kepala Desa Kedungwringin Kecamatan Patikraja Kabupaten Banyumas Provinsi Jawa Tengah, menerangkan bahwa:",
       15,
       y,
       { maxWidth: pageWidth - 30 }
@@ -166,7 +165,11 @@ const CreateTidakMampuLetter: React.FC<{
         "3. Tempat/Tgl Lahir",
         `${form.tempatLahir}, ${
           form.tanggalLahir &&
-          new Date(form.tanggalLahir).toLocaleDateString("id-ID")
+          new Date().toLocaleDateString("id-ID", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+          })
         }`,
       ],
       ["4. Warganegara/Agama", `${form.agama}`],
@@ -182,7 +185,7 @@ const CreateTidakMampuLetter: React.FC<{
     });
     y += 2;
     doc.text(
-      `Berdasakan Surat Keterangan dari Ketua Rukun Tetangga Nomor ${
+      `     Berdasakan Surat Keterangan dari Ketua Rukun Tetangga Nomor ${
         form.rtNumber || "__________"
       } Tanggal ${
         form.rtDate
@@ -193,16 +196,16 @@ const CreateTidakMampuLetter: React.FC<{
       y,
       { maxWidth: pageWidth - 30 }
     );
-    y += 12;
+    y += 20;
     doc.text(
-      `Surat keterangan ini diperlukan untuk ${form.keperluan || "..."} `,
+      `     Surat keterangan ini diperlukan untuk ${form.keperluan || "..."}.`,
       15,
       y,
       { maxWidth: pageWidth - 30 }
     );
     y += 10;
     doc.text(
-      "Demikian Surat Keterangan ini kami buat atas permintaan yang bersangkutan dan dapat dipergunakan sebagaimana mestinya.",
+      "     Demikian Surat Keterangan ini kami buat atas permintaan yang bersangkutan dan dapat dipergunakan sebagaimana mestinya.",
       15,
       y,
       { maxWidth: pageWidth - 30 }
@@ -216,7 +219,7 @@ const CreateTidakMampuLetter: React.FC<{
         month: "long",
         year: "numeric",
       })}`,
-      pageWidth - 15,
+      pageWidth - 30,
       ttdY,
       { align: "right" }
     );
@@ -225,13 +228,13 @@ const CreateTidakMampuLetter: React.FC<{
       align: "right",
     });
     y += 6;
-    doc.text("KASI PEMERINTAH", pageWidth - 15, y, { align: "right" });
+    doc.text("KASI PEMERINTAH", pageWidth - 27, y, { align: "right" });
     y += 24;
     doc.text(
       villageInfo?.kasipemerintah?.trim()
         ? villageInfo.kasipemerintah
         : "(................................)",
-      pageWidth - 15,
+      pageWidth - 35,
       y,
       { align: "right" }
     );

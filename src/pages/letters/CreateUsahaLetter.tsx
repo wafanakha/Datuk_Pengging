@@ -172,21 +172,21 @@ const CreateUsahaLetter: React.FC<{
           : "__________"
       }, bahwa yang bersangkutan betul warga Desa Kedungwringin dan menurut pengakuan yang bersangkutan mempunyai usaha ${
         form.namaUsaha
-      }`,
+      }.`,
       15,
       y,
       { maxWidth: pageWidth - 30 }
     );
     y += 12;
     doc.text(
-      `Surat Keterangan ini diperlukan untuk ${form.keperluan || "-"}`,
+      `Surat Keterangan ini diperlukan untuk ${form.keperluan || "-"}.`,
       15,
       y,
       { maxWidth: pageWidth - 30 }
     );
     y += 10;
     doc.text(
-      "Demikian Surat Keterangan ini kami buat atas permintaan yang bersangkutan dan dapat dipergunakan sebagaimana mestinya",
+      "Demikian Surat Keterangan ini kami buat atas permintaan yang bersangkutan dan dapat dipergunakan sebagaimana mestinya.",
       15,
       y,
       { maxWidth: pageWidth - 30 }
