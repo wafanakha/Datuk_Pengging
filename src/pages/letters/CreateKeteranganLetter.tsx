@@ -77,7 +77,6 @@ const CreateKeteranganLetter: React.FC = () => {
       align: "center",
     });
     y += 7;
-    doc.setFontSize(10);
     doc.text("SEKRETARIAT DESA", pageWidth / 2, y, { align: "center" });
     y += 7;
     doc.text(
@@ -179,22 +178,22 @@ const CreateKeteranganLetter: React.FC = () => {
         month: "long",
         year: "numeric",
       })}`,
-      pageWidth - 15,
+      pageWidth - 30,
       y,
       { align: "right" }
     );
     y += 6;
-    doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 15, y, {
+    doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 20, y, {
       align: "right",
     });
     y += 6;
-    doc.text("KASI PEMERINTAH", pageWidth - 15, y, { align: "right" });
+    doc.text("KASI PEMERINTAH", pageWidth - 35, y, { align: "right" });
     y += 24;
     doc.text(
       villageInfo?.kasipemerintah?.trim()
         ? villageInfo.kasipemerintah
         : "(................................)",
-      pageWidth - 15,
+      pageWidth - 45,
       y,
       { align: "right" }
     );
