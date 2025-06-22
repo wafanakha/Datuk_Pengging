@@ -100,7 +100,6 @@ const CreateSkckLetter: React.FC<{
       align: "center",
     });
     y += 7;
-    doc.setFontSize(10);
     doc.text("SEKRETARIAT DESA", pageWidth / 2, y, { align: "center" });
     y += 7;
     doc.text(
@@ -134,7 +133,7 @@ const CreateSkckLetter: React.FC<{
     y += 8;
     // Pembuka
     doc.text(
-      "Yang bertanda tangan di bawah ini, kami Kepala Desa Kedungwringin Kecamatan Patikraja Kabupaten Banyumas Provinsi Jawa Tengah, menerangkan bahwa:",
+      "    Yang bertanda tangan di bawah ini, kami Kepala Desa Kedungwringin Kecamatan Patikraja Kabupaten Banyumas Provinsi Jawa Tengah, menerangkan bahwa:",
       15,
       y,
       { maxWidth: pageWidth - 30 }
