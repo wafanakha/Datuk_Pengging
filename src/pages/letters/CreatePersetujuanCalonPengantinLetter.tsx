@@ -29,12 +29,12 @@ const initialForm = {
 function generatePersetujuanCalonPengantinN4(form: any) {
   const doc = new jsPDF();
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
-  doc.text("Model N 4", 170, 15);
   doc.setFontSize(12);
+  doc.text("Model N 4", 170, 15);
+  doc.setFontSize(14);
   doc.text("PERSETUJUAN CALON PENGANTIN", 60, 25);
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
+  doc.setFontSize(12);
   doc.text("Yang bertanda tangan di bawah ini", 10, 35);
   // Calon Suami
   doc.setFont("helvetica", "bold");
@@ -42,49 +42,49 @@ function generatePersetujuanCalonPengantinN4(form: any) {
   doc.setFont("helvetica", "normal");
   let y = 49;
   doc.text("1. Nama", 14, y);
-  doc.text(`: ${form.namaSuami}`, 70, y);
+  doc.text(`: ${form.namaSuami}`, 80, y);
   doc.text("2. Bin", 14, y + 6);
-  doc.text(`: ${form.binSuami}`, 70, y + 6);
+  doc.text(`: ${form.binSuami}`, 80, y + 6);
   doc.text("3. Nomor Induk Kependudukan", 14, y + 12);
-  doc.text(`: ${form.nikSuami}`, 70, y + 12);
+  doc.text(`: ${form.nikSuami}`, 80, y + 12);
   doc.text("4. Tempat dan tanggal lahir", 14, y + 18);
-  doc.text(`: ${form.ttlSuami}`, 70, y + 18);
+  doc.text(`: ${form.ttlSuami}`, 80, y + 18);
   doc.text("5. Kewarganegaraan", 14, y + 24);
-  doc.text(`: ${form.kewarganegaraanSuami}`, 70, y + 24);
+  doc.text(`: ${form.kewarganegaraanSuami}`, 80, y + 24);
   doc.text("6. Agama", 14, y + 30);
-  doc.text(`: ${form.agamaSuami}`, 70, y + 30);
+  doc.text(`: ${form.agamaSuami}`, 80, y + 30);
   doc.text("7. Pekerjaan", 14, y + 36);
-  doc.text(`: ${form.pekerjaanSuami}`, 70, y + 36);
+  doc.text(`: ${form.pekerjaanSuami}`, 80, y + 36);
   doc.text("8. Alamat", 14, y + 42);
-  doc.text(`: ${form.alamatSuami}`, 70, y + 42);
+  doc.text(`: ${form.alamatSuami}`, 80, y + 42);
   // Calon Istri
   doc.setFont("helvetica", "bold");
   doc.text("B. Calon Istri", 10, y + 50);
   doc.setFont("helvetica", "normal");
   doc.text("Alamat", 15, y + 56);
-  doc.text(`: ${form.alamatIstri}`, 70, y + 56);
+  doc.text(`: ${form.alamatIstri}`, 80, y + 56);
   let yI = y + 62;
   doc.text("1. Nama", 14, yI);
-  doc.text(`: ${form.namaIstri}`, 70, yI);
+  doc.text(`: ${form.namaIstri}`, 80, yI);
   doc.text("2. Binti", 14, yI + 6);
-  doc.text(`: ${form.bintiIstri}`, 70, yI + 6);
+  doc.text(`: ${form.bintiIstri}`, 80, yI + 6);
   doc.text("3. Nomor Induk Kependudukan", 14, yI + 12);
-  doc.text(`: ${form.nikIstri}`, 70, yI + 12);
+  doc.text(`: ${form.nikIstri}`, 80, yI + 12);
   doc.text("4. Tempat dan tanggal lahir", 14, yI + 18);
-  doc.text(`: ${form.ttlIstri}`, 70, yI + 18);
+  doc.text(`: ${form.ttlIstri}`, 80, yI + 18);
   doc.text("5. Kewarganegaraan", 14, yI + 24);
-  doc.text(`: ${form.kewarganegaraanIstri}`, 70, yI + 24);
+  doc.text(`: ${form.kewarganegaraanIstri}`, 80, yI + 24);
   doc.text("6. Agama", 14, yI + 30);
-  doc.text(`: ${form.agamaIstri}`, 70, yI + 30);
+  doc.text(`: ${form.agamaIstri}`, 80, yI + 30);
   doc.text("7. Pekerjaan", 14, yI + 36);
-  doc.text(`: ${form.pekerjaanIstri}`, 70, yI + 36);
+  doc.text(`: ${form.pekerjaanIstri}`, 80, yI + 36);
   doc.text("8. Alamat", 14, yI + 42);
-  doc.text(`: ${form.alamatIstri}`, 70, yI + 42);
+  doc.text(`: ${form.alamatIstri}`, 80, yI + 42);
   // Baris tambahan alamat jika perlu
   // Pernyataan
   let yStatement = yI + 58;
   let yStatement2 = yI + 63;
-  doc.setFontSize(10);
+  doc.setFontSize(12);
   let statement1 =
     "Menyatakan dengan sesungguhnya bahwa atas dasar suka rela , dengan kesadaran sendiri,";
   let statement2 =
@@ -101,15 +101,21 @@ function generatePersetujuanCalonPengantinN4(form: any) {
   doc.text(
     `Kedungwiringin, ${
       form.tanggalSurat &&
-      new Date(form.tanggalSurat).toLocaleDateString("id-ID")
+      new Date().toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })
     }`,
     120,
     yStatement2 + 20
   );
+  doc.setFont("helvetica", "bold");
   doc.text("Calon Suami", 30, yStatement2 + 30);
-  doc.text("Calon Isteri", 120, yStatement2 + 30);
+  doc.text("Calon Isteri", 135, yStatement2 + 30);
+  doc.setFont("helvetica", "normal");
   doc.text(form.namaSuami || "", 32, yStatement2 + 60);
-  doc.text(form.namaIstri || "", 120, yStatement2 + 60);
+  doc.text(form.namaIstri || "", 143, yStatement2 + 60);
   return doc;
 }
 
