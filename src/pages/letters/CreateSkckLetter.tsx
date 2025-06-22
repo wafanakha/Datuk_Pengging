@@ -49,17 +49,6 @@ const initialForm: SkckFormData = {
   regDate: "",
 };
 
-const perangkatFallback = [
-  { key: "kepaladesa", label: "Kepala Desa" },
-  { key: "sekdes", label: "Sekretaris Desa" },
-  { key: "kasipemerintah", label: "Kasi Pemerintahan" },
-  { key: "kasikesra", label: "Kasi Kesejahteraan" },
-  { key: "kasipelayanan", label: "Kasi Pelayanan" },
-  { key: "kaurumum", label: "Kaur Umum dan Tata Usaha" },
-  { key: "kaurkeuangan", label: "Kaur Keuangan" },
-  { key: "kaurperencanaan", label: "Kaur Perencanaan" },
-];
-
 const CreateSkckLetter: React.FC<{
   editData?: Letter;
   isEditMode?: boolean;
@@ -69,9 +58,7 @@ const CreateSkckLetter: React.FC<{
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
   const [villageInfo, setVillageInfo] = useState<any>(null);
-  const [signer, setSigner] = useState<{ key: string; label: string }>(
-    perangkatFallback[2]
-  ); // Default Kasi Pemerintahan
+  const [signer, setSigner] = useState<{ nama: string; jabatan: string } | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -84,17 +71,45 @@ const CreateSkckLetter: React.FC<{
         ...initialForm,
         ...parsed,
       });
-      // Try to get signer from parsed content, fallback to default
-      const signerKey = (parsed as any)?.signerKey || (parsed as any)?.signer || "kasipemerintah";
-      setSigner(
-        perangkatFallback.find((p) => p.key === signerKey) || perangkatFallback[2]
-      );
     }
   }, [editData]);
 
   useEffect(() => {
-    villageService.getVillageInfo().then(setVillageInfo);
+    villageService.getVillageInfo().then((info) => {
+      setVillageInfo(info);
+      if (info?.perangkat?.length) {
+        // Default: Kepala Desa jika ada, jika tidak perangkat pertama
+        const kepalaDesa = info.perangkat.find((p: any) =>
+          p.jabatan.toLowerCase().includes("kepala desa")
+        );
+        setSigner(kepalaDesa || info.perangkat[0]);
+      } else if (info?.kasipemerintah) {
+        setSigner({ nama: info.kasipemerintah, jabatan: "Kasi Pemerintahan" });
+      }
+    });
   }, []);
+
+  // Helper: fallback perangkat jika tidak ada array perangkat
+  const perangkatFallback: { nama: string; jabatan: string }[] = [];
+  if (villageInfo) {
+    // Mapping field Settings.tsx ke jabatan
+    const perangkatMap: Record<string, string> = {
+      kepaladesa: 'Kepala Desa',
+      sekdes: 'Sekretaris Desa',
+      kasipemerintah: 'Kasi Pemerintahan',
+      kasikesra: 'Kasi Kesejahteraan',
+      kasipelayanan: 'Kasi Pelayanan',
+      kaurUmumNTataUsaha: 'Kaur Umum dan Tata Usaha',
+      kaurkeuangan: 'Kaur Keuangan',
+      kaurperencanaan: 'Kaur Perencanaan',
+    };
+    Object.entries(perangkatMap).forEach(([field, jabatan]) => {
+      const nama = villageInfo[field];
+      if (typeof nama === 'string' && nama.trim()) {
+        perangkatFallback.push({ nama: nama.trim(), jabatan });
+      }
+    });
+  }
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -103,8 +118,14 @@ const CreateSkckLetter: React.FC<{
   };
 
   const handleSignerChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = perangkatFallback.find((p) => p.key === e.target.value);
-    if (selected) setSigner(selected);
+    let selected: { nama: string; jabatan: string } | null = null;
+    if (villageInfo?.perangkat?.length) {
+      selected = villageInfo.perangkat.find((p: any) => p.nama === e.target.value);
+    } else {
+      const found = perangkatFallback.find((p) => p.nama === e.target.value);
+      selected = found ? { nama: found.nama, jabatan: found.jabatan } : null;
+    }
+    setSigner(selected);
   };
 
   const generatePDF = (): jsPDF => {
@@ -231,9 +252,6 @@ const CreateSkckLetter: React.FC<{
     );
     // TTD
     let ttdY = y + 14;
-    // Pemohon kiri
-    // Camat tengah
-    // Pejabat kanan
     doc.text(
       `Kedungwringin, ${new Date().toLocaleDateString("id-ID", {
         day: "2-digit",
@@ -244,25 +262,26 @@ const CreateSkckLetter: React.FC<{
       ttdY,
       { align: "right" }
     );
-    if (signer.key !== "kepaladesa") {
+    // Jika bukan kepala desa, tambahkan An. KEPALA DESA KEDUNGWRINGIN
+    if (signer && !signer.jabatan.toLowerCase().includes("kepala desa")) {
       doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 15, ttdY + 6, {
         align: "right",
       });
     }
-    doc.text(signer.label.toUpperCase(), pageWidth - 15, (ttdY += 12), {
-      align: "right",
-    });
+    doc.text(
+      (signer?.jabatan?.toUpperCase() || "KASI PEMERINTAH"),
+      pageWidth - 15,
+      (ttdY += 12),
+      { align: "right" }
+    );
     doc.text("Pemohon", 30, ttdY);
     // TTD space
     ttdY += 32;
     doc.text(form.nama || "(................................)", 37, ttdY, {
       align: "center",
     });
-
     doc.text(
-      villageInfo?.[signer.key]?.trim()
-        ? villageInfo[signer.key]
-        : "(................................)",
+      signer?.nama || villageInfo?.kasipemerintah?.trim() || "(................................)",
       pageWidth - 15,
       ttdY,
       { align: "right" }
@@ -504,18 +523,24 @@ const CreateSkckLetter: React.FC<{
             className="input"
           />
         </div>
-        <div>
-          <label className="text-xs text-gray-600 mb-1">Penandatangan Surat</label>
+        <div className="md:col-span-2 mb-2">
+          <label className="block font-semibold mb-1">Tanda Tangan Oleh</label>
           <select
-            className="input"
-            value={signer.key}
+            className="input w-full"
+            value={signer?.nama || ""}
             onChange={handleSignerChange}
           >
-            {perangkatFallback.map((p) => (
-              <option key={p.key} value={p.key}>
-                {p.label}
-              </option>
-            ))}
+            {villageInfo?.perangkat?.length
+              ? villageInfo.perangkat.map((p: any) => (
+                  <option key={p.nama} value={p.nama}>
+                    {p.jabatan} - {p.nama}
+                  </option>
+                ))
+              : perangkatFallback.map((p) => (
+                  <option key={p.nama} value={p.nama}>
+                    {p.jabatan} - {p.nama}
+                  </option>
+                ))}
           </select>
         </div>
       </form>
@@ -772,10 +797,10 @@ const CreateSkckLetter: React.FC<{
                     year: "numeric",
                   })}
                 </p>
-                {signer.key !== "kepaladesa" && (
+                {signer && !signer.jabatan.toLowerCase().includes("kepala desa") && (
                   <p>An. KEPALA DESA KEDUNGWRINGIN</p>
                 )}
-                <p>{signer.label.toUpperCase()}</p>
+                <p>{signer?.jabatan ? signer.jabatan.toUpperCase() : (signer?.nama ? '' : '(................................)')}</p>
               </div>
               <div style={{ marginTop: "auto" }}>
                 <div
@@ -787,9 +812,7 @@ const CreateSkckLetter: React.FC<{
                 ></div>
                 <p>
                   <strong>
-                    {villageInfo?.[signer.key]?.trim()
-                      ? villageInfo[signer.key]
-                      : "(................................)"}
+                    {signer?.nama || villageInfo?.kasipemerintah?.trim() || '(................................)'}
                   </strong>
                 </p>
               </div>
