@@ -4,7 +4,7 @@ import Button from "../../components/ui/Button";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import logo from "../../../logo-bms.png";
-import { residentService } from "../../database/residentService";
+import { residentService } from "../../services/residentService";
 import { LetterHistory } from "../../types";
 import { saveLetterHistory } from "../../services/residentService";
 interface PewarisData {
@@ -41,36 +41,23 @@ const initialPewaris: PewarisData = {
 const initialAhliWaris: AhliWarisData[] = [];
 
 const CreateAhliWarisLetter: React.FC = () => {
-  const [kkSearch, setKkSearch] = useState("");
-  const [kkResults, setKkResults] = useState<any[]>([]);
-  const [searching, setSearching] = useState(false);
-  const [selectedKk, setSelectedKk] = useState<any>(null);
+  const [pewarisSearch, setPewarisSearch] = useState("");
+  const [pewarisSearchResults, setPewarisSearchResults] = useState<any[]>([]);
+  const [searchingPewaris, setSearchingPewaris] = useState(false);
   const [pewaris, setPewaris] = useState<PewarisData>(initialPewaris);
-  const [ahliWaris, setAhliWaris] = useState<AhliWarisData[]>(initialAhliWaris);
+  const [ahliWaris, setAhliWaris] = useState<AhliWarisData[]>([]);
   const [letterNumber, setLetterNumber] = useState("");
   const navigate = useNavigate();
 
-  // Cari KK dan tampilkan anggota, pilih yang meninggal
-  const handleKkSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    setKkSearch(e.target.value);
-    if (e.target.value.length < 3) {
-      setKkResults([]);
-      return;
-    }
-    setSearching(true);
-    const results = await residentService.searchKk(e.target.value); // Anda perlu menyesuaikan residentService agar bisa search KK
-    setKkResults(results);
-    setSearching(false);
+  // Cari Pewaris berdasarkan NIK/Nama
+  const handlePewarisSearch = async () => {
+    setSearchingPewaris(true);
+    const results = await residentService.searchByNikOrName(pewarisSearch); // Anda perlu menyesuaikan residentService
+    setPewarisSearchResults(results);
+    setSearchingPewaris(false);
   };
 
-  // Setelah KK dipilih, pilih pewaris (yang meninggal)
-  const handleSelectKk = (kk: any) => {
-    setSelectedKk(kk);
-    setKkSearch(kk.kk);
-    setKkResults([]);
-  };
-
-  // Pilih pewaris (yang meninggal)
+  // Pilih Pewaris dari hasil pencarian
   const handleSelectPewaris = (pewarisRes: any) => {
     setPewaris({
       nama: pewarisRes.name,
@@ -78,22 +65,55 @@ const CreateAhliWarisLetter: React.FC = () => {
       alamat: pewarisRes.address,
       hariWafat: "",
       tanggalWafat: "",
-      tempatWafat: pewarisRes.address,
+      tempatWafat: "",
       aktaKematian: "",
       tanggalAkta: "",
     });
-    // Otomatis ambil anggota KK lain sebagai ahli waris
-    const ahli = (selectedKk?.members || [])
-      .filter((m: any) => m.id !== pewarisRes.id)
-      .map((m: any) => ({
-        nama: m.name,
-        tempatLahir: m.birthPlace,
-        tanggalLahir: m.birthDate,
-        nik: m.nik,
-        alamat: m.address,
-        hubungan: m.shdk || "", // Ganti dari m.relationship ke m.shdk
-      }));
-    setAhliWaris(ahli);
+    setPewarisSearchResults([]);
+    setPewarisSearch("");
+  };
+
+  // Tambah Ahli Waris (otomatis jika ditemukan, manual jika tidak)
+  const handleAddAhliWaris = async (search: string) => {
+    let data: import("../../types").Resident | null = null;
+    if (search) {
+      const results = await residentService.searchByNikOrName(search);
+      if (results && results.length > 0) {
+        data = results[0];
+      }
+    }
+    setAhliWaris([
+      ...ahliWaris,
+      data
+        ? {
+            nama: data.name,
+            tempatLahir: data.birthPlace,
+            tanggalLahir: data.birthDate,
+            nik: data.nik,
+            alamat: data.address,
+            hubungan: data.shdk || "",
+          }
+        : {
+            nama: "",
+            tempatLahir: "",
+            tanggalLahir: "",
+            nik: "",
+            alamat: "",
+            hubungan: "",
+          },
+    ]);
+  };
+
+  // Edit field ahli waris manual
+  const handleEditAhliWaris = (idx: number, field: keyof AhliWarisData, value: string) => {
+    const updated = [...ahliWaris];
+    updated[idx][field] = value;
+    setAhliWaris(updated);
+  };
+
+  // Hapus ahli waris
+  const handleRemoveAhliWaris = (idx: number) => {
+    setAhliWaris(ahliWaris.filter((_, i) => i !== idx));
   };
 
   const generatePDF = (): jsPDF => {
@@ -290,19 +310,52 @@ const CreateAhliWarisLetter: React.FC = () => {
       .catch((error) => console.error("Failed to save letter history:", error));
   };
 
+  // Fungsi untuk mendapatkan nama hari dari tanggal (dalam bahasa Indonesia)
+  function getHariFromTanggal(tanggal: string): string {
+    if (!tanggal) return "";
+    const hariList = [
+      "Minggu",
+      "Senin",
+      "Selasa",
+      "Rabu",
+      "Kamis",
+      "Jumat",
+      "Sabtu",
+    ];
+    const date = new Date(tanggal);
+    return hariList[date.getDay()];
+  }
+
   return (
-    <div className="max-w-3xl mx-auto py-8">
+    <div className="w-full ml-0 py-8">
       <h1 className="text-2xl font-bold mb-4 text-left text-teal-800">
         Surat Keterangan Ahli Waris
       </h1>
       <div className="mb-4">
-        <input
-          type="text"
-          className="input w-full"
-          placeholder="Cari Nomor KK..."
-          value={kkSearch}
-          onChange={handleKkSearch}
-        />
+        <div className="mb-2">
+          <input
+            type="text"
+            className="input w-full"
+            placeholder="Cari NIK/Nama Pewaris..."
+            value={pewarisSearch}
+            onChange={e => setPewarisSearch(e.target.value)}
+          />
+          <Button variant="primary" onClick={handlePewarisSearch} className="mt-2">Cari Pewaris</Button>
+          {searchingPewaris && <div className="text-sm text-gray-500">Mencari...</div>}
+          {pewarisSearchResults.length > 0 && (
+            <div className="bg-white border rounded shadow mt-1 max-h-48 overflow-auto z-10 relative">
+              {pewarisSearchResults.map((res) => (
+                <div
+                  key={res.nik}
+                  className="px-3 py-2 hover:bg-teal-100 cursor-pointer"
+                  onClick={() => handleSelectPewaris(res)}
+                >
+                  {res.nik} - {res.name}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         <input
           type="text"
           className="input w-full mt-2"
@@ -310,94 +363,49 @@ const CreateAhliWarisLetter: React.FC = () => {
           value={letterNumber}
           onChange={(e) => setLetterNumber(e.target.value)}
         />
-        <input
-          type="text"
-          className="input w-full mt-2"
-          placeholder="Nomor Akta Kematian"
-          value={pewaris.aktaKematian}
-          onChange={(e) =>
-            setPewaris({ ...pewaris, aktaKematian: e.target.value })
-          }
-        />
-
-        <div className="flex gap-2">
-          <label className="text-xs text-gray-600 mb-1">Tanggal Wafat</label>
-
-          <input
-            type="date"
-            className="input w-full mt-2"
-            placeholder="Tanggal Wafat"
-            value={pewaris.tanggalWafat}
-            onChange={(e) =>
-              setPewaris({ ...pewaris, tanggalWafat: e.target.value })
-            }
-          />
-          <label className="text-xs text-gray-600 mb-1">
-            Tanggal Akta Kematian
-          </label>
-          <input
-            type="date"
-            className="input w-full mt-2"
-            placeholder="Tanggal Akta Kematian"
-            value={pewaris.tanggalAkta}
-            onChange={(e) =>
-              setPewaris({ ...pewaris, tanggalAkta: e.target.value })
-            }
-          />
-        </div>
-        <input
-          type="text"
-          className="input w-full mt-2"
-          placeholder="Hari Wafat"
-          value={pewaris.hariWafat}
-          onChange={(e) =>
-            setPewaris({ ...pewaris, hariWafat: e.target.value })
-          }
-        />
-        <input
-          type="text"
-          className="input w-full mt-2"
-          placeholder="Tempat Wafat"
-          value={pewaris.tempatWafat}
-          onChange={(e) =>
-            setPewaris({ ...pewaris, tempatWafat: e.target.value })
-          }
-        />
-        {searching && <div className="text-sm text-gray-500">Mencari...</div>}
-        {kkResults.length > 0 && (
-          <div className="bg-white border rounded shadow mt-1 max-h-48 overflow-auto z-10 relative">
-            {kkResults.map((kk) => (
-              <div
-                key={kk.kk}
-                className="px-3 py-2 hover:bg-teal-100 cursor-pointer"
-                onClick={() => handleSelectKk(kk)}
-              >
-                {kk.kk} - {kk.headName}
-              </div>
-            ))}
+        {/* Data Pewaris */}
+        <div className="mt-4">
+          <div className="font-semibold mb-2">Data Pewaris (yang meninggal):</div>
+          <input type="text" className="input w-full mt-2" placeholder="Nama" value={pewaris.nama} onChange={e => setPewaris({ ...pewaris, nama: e.target.value })} />
+          <input type="text" className="input w-full mt-2" placeholder="Umur" value={pewaris.umur} onChange={e => setPewaris({ ...pewaris, umur: e.target.value })} />
+          <input type="text" className="input w-full mt-2" placeholder="Alamat" value={pewaris.alamat} onChange={e => setPewaris({ ...pewaris, alamat: e.target.value })} />
+          <input type="text" className="input w-full mt-2" placeholder="Nomor Akta Kematian" value={pewaris.aktaKematian} onChange={e => setPewaris({ ...pewaris, aktaKematian: e.target.value })} />
+          <div className="flex gap-2">
+            <label className="text-xs text-gray-600 mb-1">Tanggal Wafat</label>
+            <input type="date" className="input w-full mt-2" placeholder="Tanggal Wafat" value={pewaris.tanggalWafat} onChange={e => {
+              const tanggal = e.target.value;
+              setPewaris({ ...pewaris, tanggalWafat: tanggal, hariWafat: getHariFromTanggal(tanggal) });
+            }} />
+            <label className="text-xs text-gray-600 mb-1">Tanggal Akta Kematian</label>
+            <input type="date" className="input w-full mt-2" placeholder="Tanggal Akta Kematian" value={pewaris.tanggalAkta} onChange={e => setPewaris({ ...pewaris, tanggalAkta: e.target.value })} />
           </div>
-        )}
+          <input type="text" className="input w-full mt-2" placeholder="Hari Wafat" value={pewaris.hariWafat} onChange={e => setPewaris({ ...pewaris, hariWafat: e.target.value })} />
+          <input type="text" className="input w-full mt-2" placeholder="Tempat Wafat" value={pewaris.tempatWafat} onChange={e => setPewaris({ ...pewaris, tempatWafat: e.target.value })} />
+        </div>
+        {/* Daftar Ahli Waris */}
+        <div className="mt-6">
+          <div className="font-semibold mb-2">Daftar Ahli Waris:</div>
+          {ahliWaris.map((a, i) => (
+            <div key={i} className="flex gap-2 mb-2 items-center">
+              <input type="text" className="input" placeholder="Nama" value={a.nama} onChange={e => handleEditAhliWaris(i, 'nama', e.target.value)} />
+              <input type="text" className="input" placeholder="Tempat Lahir" value={a.tempatLahir} onChange={e => handleEditAhliWaris(i, 'tempatLahir', e.target.value)} />
+              <input type="date" className="input" placeholder="Tanggal Lahir" value={a.tanggalLahir} onChange={e => handleEditAhliWaris(i, 'tanggalLahir', e.target.value)} />
+              <input type="text" className="input" placeholder="NIK" value={a.nik} onChange={e => handleEditAhliWaris(i, 'nik', e.target.value)} />
+              <input type="text" className="input" placeholder="Alamat" value={a.alamat} onChange={e => handleEditAhliWaris(i, 'alamat', e.target.value)} />
+              <input type="text" className="input" placeholder="Hubungan" value={a.hubungan} onChange={e => handleEditAhliWaris(i, 'hubungan', e.target.value)} />
+              <Button variant="danger" onClick={() => handleRemoveAhliWaris(i)}>-</Button>
+            </div>
+          ))}
+          <div className="flex gap-2 mt-2">
+            <input type="text" className="input" placeholder="Cari NIK/Nama untuk tambah ahli waris (opsional)" id="addAhliWarisInput" />
+            <Button variant="primary" onClick={async () => {
+              const val = (document.getElementById('addAhliWarisInput') as HTMLInputElement)?.value;
+              await handleAddAhliWaris(val);
+              if (document.getElementById('addAhliWarisInput')) (document.getElementById('addAhliWarisInput') as HTMLInputElement).value = '';
+            }}>+</Button>
+          </div>
+        </div>
       </div>
-      {selectedKk && (
-        <div className="mb-4">
-          <div className="font-semibold mb-2">
-            Pilih Pewaris (yang meninggal):
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {selectedKk.members.map((m: any) => (
-              <Button
-                key={m.id}
-                variant="outline"
-                onClick={() => handleSelectPewaris(m)}
-              >
-                {m.name} ({m.relationship})
-              </Button>
-            ))}
-          </div>
-        </div>
-      )}
-      {/* Form manual jika ingin edit data pewaris/ahli waris */}
-      {/* ...bisa ditambah jika perlu... */}
       <div className="flex gap-2 mb-6">
         <Button variant="primary" onClick={handleExportPDF}>
           Export PDF
@@ -411,7 +419,8 @@ const CreateAhliWarisLetter: React.FC = () => {
       </div>
       <div
         id="ahli-waris-preview"
-        className="bg-white p-8 border shadow max-w-[800px] mx-auto"
+        className="bg-white p-8 border shadow max-w-[800px] ml-0"
+        style={{ marginLeft: 0 }}
       >
         <div className="flex items-center mb-2">
           <img src={logo} alt="Logo Instansi" className="h-24 mr-4" />

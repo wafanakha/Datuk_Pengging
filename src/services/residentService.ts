@@ -1,5 +1,6 @@
 import { db } from "../database/db";
 import { Resident, LetterHistory } from "../types"; // ganti sesuai path kamu
+import { residentService as dbResidentService } from "../database/residentService";
 
 export const getAllResidents = async (): Promise<Resident[]> => {
   return await db.residents.toArray();
@@ -17,4 +18,10 @@ export const getLetterHistory = async (): Promise<LetterHistory[]> => {
 
 export const deleteLetterHistory = async (id: number): Promise<void> => {
   await db.letterHistory.delete(id);
+};
+
+export const residentService = {
+  ...dbResidentService,
+  searchByNikOrName: dbResidentService.searchResidents,
+  // ...bisa extend di sini jika perlu...
 };
