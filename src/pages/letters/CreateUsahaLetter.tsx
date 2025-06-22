@@ -92,14 +92,17 @@ const CreateUsahaLetter: React.FC<{
   if (villageInfo) {
     // Mapping field Settings.tsx ke jabatan
     const perangkatMap: Record<string, string> = {
-      kepaladesa: 'Kepala Desa',
-      sekdes: 'Sekretaris Desa',
+      leaderName: 'Kepala Desa',
+      sekretaris: 'Sekretaris Desa',
+      kaurUmumNTataUsaha: 'Kaur Umum & Tata Usaha',
+      kaurKeuangan: 'Kaur Keuangan',
+      kaurPerencanaan: 'Kaur Perencanaan',
       kasipemerintah: 'Kasi Pemerintahan',
-      kasikesra: 'Kasi Kesejahteraan',
-      kasipelayanan: 'Kasi Pelayanan',
-      kaurUmumNTataUsaha: 'Kaur Umum',
-      kaurkeuangan: 'Kaur Keuangan',
-      kaurperencanaan: 'Kaur Perencanaan',
+      kasiKesejahteraan: 'Kasi Kesejahteraan',
+      kasiPelayanan: 'Kasi Pelayanan',
+      kadus1: 'Kepala Dusun I',
+      kadus2: 'Kepala Dusun II',
+      kadus3: 'Kepala Dusun III',
     };
     Object.entries(perangkatMap).forEach(([field, jabatan]) => {
       const nama = villageInfo[field];
