@@ -94,9 +94,9 @@ const generatePDF = (
     { align: "left" }
   );
   y += 7;
-  doc.text("Yang menyatakan", pageWidth - 90, y);
+  doc.text("Yang menyatakan", pageWidth - 80, y);
   y += 30;
-  doc.text(resident.name, pageWidth - 75, y, { align: "right" });
+  doc.text(resident.name, pageWidth - 60, y, { align: "right" });
   y += 10;
   doc.text("Mengetahui", pageWidth / 2 - 20, y, { align: "left" });
   y += 7;
@@ -226,7 +226,7 @@ const CreateBelumMenikahLetter: React.FC = () => {
       toast.success("Surat berhasil diekspor ke PDF");
       const historyEntry: LetterHistory = {
         name: resident.name,
-        letter: "belum-menikah", // Since this is the usaha letter component
+        letter: "belum-menikah",
         date: new Date().toISOString(),
       };
 
