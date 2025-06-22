@@ -215,6 +215,44 @@ const CreateKematianLetter: React.FC = () => {
       .catch((error) => console.error("Failed to save letter history:", error));
   };
 
+  // Helper: perangkat fallback dari pengaturan Settings
+  const perangkatFallback: { nama: string; jabatan: string }[] = [];
+  if (villageInfo) {
+    const perangkatMap: Record<string, string> = {
+      leaderName: "Kepala Desa",
+      sekretaris: "Sekretaris Desa",
+      kaurUmumNTataUsaha: "Kaur Umum & Tata Usaha",
+      kaurKeuangan: "Kaur Keuangan",
+      kaurPerencanaan: "Kaur Perencanaan",
+      kasipemerintah: "Kasi Pemerintahan",
+      kasiKesejahteraan: "Kasi Kesejahteraan",
+      kasiPelayanan: "Kasi Pelayanan",
+      kadus1: "Kepala Dusun I",
+      kadus2: "Kepala Dusun II",
+      kadus3: "Kepala Dusun III",
+    };
+    Object.entries(perangkatMap).forEach(([field, jabatan]) => {
+      const nama = villageInfo[field];
+      if (typeof nama === "string" && nama.trim()) {
+        perangkatFallback.push({ nama: nama.trim(), jabatan });
+      }
+    });
+  }
+
+  const [signer, setSigner] = React.useState<
+    { nama: string; jabatan: string } | null
+  >(null);
+
+  React.useEffect(() => {
+    if (perangkatFallback.length > 0) {
+      // Default: Kepala Desa jika ada, jika tidak perangkat pertama
+      const kepalaDesa = perangkatFallback.find((p) =>
+        p.jabatan.toLowerCase().includes("kepala desa")
+      );
+      setSigner(kepalaDesa || perangkatFallback[0]);
+    }
+  }, [villageInfo]);
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <h2 className="text-2xl font-bold">
@@ -366,21 +404,31 @@ const CreateKematianLetter: React.FC = () => {
         <div className="md:col-span-2 font-semibold mt-4 mb-2">
           C. Data Surat
         </div>
+        {/* Pilih Penandatangan */}
+        <div className="md:col-span-2 mb-2">
+          <label className="block font-semibold mb-1">Tanda Tangan Oleh</label>
+          <select
+            className="input w-full"
+            value={signer?.nama || ""}
+            onChange={(e) => {
+              const found = perangkatFallback.find(
+                (p) => p.nama === e.target.value
+              );
+              setSigner(found || null);
+            }}
+          >
+            {perangkatFallback.map((p) => (
+              <option key={p.nama} value={p.nama}>
+                {p.jabatan} - {p.nama}
+              </option>
+            ))}
+          </select>
+        </div>
         <Input
           label="Tanggal Surat"
           name="suratDate"
           type="date"
           value={form.suratDate}
-          onChange={handleChange}
-        />
-        <Input
-          label="Nama Kepala Desa"
-          name="kepalaDesa"
-          value={
-            form.kepalaDesa === "" && villageInfo?.leaderName
-              ? villageInfo.leaderName
-              : form.kepalaDesa
-          }
           onChange={handleChange}
         />
         <Input
@@ -530,12 +578,14 @@ const CreateKematianLetter: React.FC = () => {
               {form.suratDate &&
                 new Date(form.suratDate).toLocaleDateString("id-ID")}
             </div>
-            <div className="font-bold">Kepala Desa Kedungwiringin</div>
+            {/* Jika bukan kepala desa, tampilkan An. KEPALA DESA KEDUNGWRINGIN */}
+            {signer && !signer.jabatan.toLowerCase().includes('kepala desa') && (
+              <div className="font-bold">An. KEPALA DESA KEDUNGWRINGIN</div>
+            )}
+            <div className="font-bold">{signer?.jabatan?.toUpperCase() || '(................................)'}</div>
             <div style={{ height: "60px" }}></div>
             <div className="font-bold underline">
-              {form.kepalaDesa ||
-                villageInfo?.leaderName ||
-                "(................................)"}
+              {signer?.nama || '(................................)'}
             </div>
           </div>
         </div>

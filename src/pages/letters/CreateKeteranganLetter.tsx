@@ -48,11 +48,44 @@ const CreateKeteranganLetter: React.FC = () => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
   const [villageInfo, setVillageInfo] = useState<any>(null);
+  const [signer, setSigner] = React.useState<{ nama: string; jabatan: string } | null>(null);
   const navigate = useNavigate();
 
   React.useEffect(() => {
     villageService.getVillageInfo().then(setVillageInfo);
   }, []);
+
+  React.useEffect(() => {
+    if (perangkatFallback.length > 0) {
+      // Default: Kepala Desa jika ada, jika tidak perangkat pertama
+      const kepalaDesa = perangkatFallback.find((p) => p.jabatan.toLowerCase().includes('kepala desa'));
+      setSigner(kepalaDesa || perangkatFallback[0]);
+    }
+  }, [villageInfo]);
+
+  // Helper: perangkat fallback dari pengaturan Settings
+  const perangkatFallback: { nama: string; jabatan: string }[] = [];
+  if (villageInfo) {
+    const perangkatMap: Record<string, string> = {
+      leaderName: 'Kepala Desa',
+      sekretaris: 'Sekretaris Desa',
+      kaurUmumNTataUsaha: 'Kaur Umum & Tata Usaha',
+      kaurKeuangan: 'Kaur Keuangan',
+      kaurPerencanaan: 'Kaur Perencanaan',
+      kasipemerintah: 'Kasi Pemerintahan',
+      kasiKesejahteraan: 'Kasi Kesejahteraan',
+      kasiPelayanan: 'Kasi Pelayanan',
+      kadus1: 'Kepala Dusun I',
+      kadus2: 'Kepala Dusun II',
+      kadus3: 'Kepala Dusun III',
+    };
+    Object.entries(perangkatMap).forEach(([field, jabatan]) => {
+      const nama = villageInfo[field];
+      if (typeof nama === 'string' && nama.trim()) {
+        perangkatFallback.push({ nama: nama.trim(), jabatan });
+      }
+    });
+  }
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -298,6 +331,25 @@ const CreateKeteranganLetter: React.FC = () => {
         )}
       </div>
       <form className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        {/* Pilih Penandatangan */}
+        <div className="md:col-span-2 mb-2">
+          <label className="block font-semibold mb-1">Tanda Tangan Oleh</label>
+          <select
+            className="input w-full"
+            value={signer?.nama || ""}
+            onChange={e => {
+              const found = perangkatFallback.find((p) => p.nama === e.target.value);
+              setSigner(found || null);
+            }}
+          >
+            {perangkatFallback.map((p) => (
+              <option key={p.nama} value={p.nama}>
+                {p.jabatan} - {p.nama}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <input
           name="nama"
           value={form.nama}
@@ -577,7 +629,11 @@ const CreateKeteranganLetter: React.FC = () => {
                   year: "numeric",
                 })}
               </p>
-              <p>KASI PEMERINTAH</p>
+              {/* Jika bukan kepala desa, tampilkan An. KEPALA DESA KEDUNGWRINGIN */}
+              {signer && !signer.jabatan.toLowerCase().includes('kepala desa') && (
+                <p className="font-bold">An. KEPALA DESA KEDUNGWRINGIN</p>
+              )}
+              <p>{signer?.jabatan?.toUpperCase() || '(................................)'}</p>
             </div>
             <div style={{ marginTop: "auto" }}>
               <div
@@ -586,9 +642,7 @@ const CreateKeteranganLetter: React.FC = () => {
               ></div>
               <p>
                 <strong>
-                  {villageInfo?.kasipemerintah?.trim()
-                    ? villageInfo.kasipemerintah
-                    : "(................................)"}
+                  {signer?.nama || '(................................)'}
                 </strong>
               </p>
             </div>

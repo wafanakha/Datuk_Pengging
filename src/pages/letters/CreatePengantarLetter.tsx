@@ -56,6 +56,7 @@ const CreatePengantarLetter: React.FC<{
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
   const [villageInfo, setVillageInfo] = useState<any>(null);
+  const [signer, setSigner] = useState<{ nama: string; jabatan: string } | null>(null);
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -69,8 +70,44 @@ const CreatePengantarLetter: React.FC<{
   }, [editData]);
 
   React.useEffect(() => {
-    villageService.getVillageInfo().then(setVillageInfo);
+    villageService.getVillageInfo().then((info) => {
+      setVillageInfo(info);
+      if (info?.perangkat?.length) {
+        // Default: Kepala Desa jika ada, jika tidak perangkat pertama
+        const kepalaDesa = info.perangkat.find((p: any) =>
+          p.jabatan.toLowerCase().includes("kepala desa")
+        );
+        setSigner(kepalaDesa || info.perangkat[0]);
+      } else if (info?.kasipemerintah) {
+        setSigner({ nama: info.kasipemerintah, jabatan: "Kasi Pemerintah" });
+      }
+    });
   }, []);
+
+  // Helper: fallback perangkat jika tidak ada array perangkat
+  const perangkatFallback: { nama: string; jabatan: string }[] = [];
+  if (villageInfo) {
+    // Mapping field Settings.tsx ke jabatan
+    const perangkatMap: Record<string, string> = {
+      leaderName: 'Kepala Desa',
+      sekretaris: 'Sekretaris Desa',
+      kaurUmumNTataUsaha: 'Kaur Umum & Tata Usaha',
+      kaurKeuangan: 'Kaur Keuangan',
+      kaurPerencanaan: 'Kaur Perencanaan',
+      kasipemerintah: 'Kasi Pemerintahan',
+      kasiKesejahteraan: 'Kasi Kesejahteraan',
+      kasiPelayanan: 'Kasi Pelayanan',
+      kadus1: 'Kepala Dusun I',
+      kadus2: 'Kepala Dusun II',
+      kadus3: 'Kepala Dusun III',
+    };
+    Object.entries(perangkatMap).forEach(([field, jabatan]) => {
+      const nama = villageInfo[field];
+      if (typeof nama === 'string' && nama.trim()) {
+        perangkatFallback.push({ nama: nama.trim(), jabatan });
+      }
+    });
+  }
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -230,23 +267,26 @@ const CreatePengantarLetter: React.FC<{
       ttdY,
       { align: "right" }
     );
-    doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 15, ttdY + 6, {
-      align: "right",
-    });
-    doc.text("KASI PEMERINTAH", pageWidth - 30, (ttdY += 12), {
-      align: "right",
-    });
+    // Jika bukan kepala desa, tambahkan An. KEPALA DESA KEDUNGWRINGIN
+    if (signer && !signer.jabatan.toLowerCase().includes("kepala desa")) {
+      doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 15, ttdY + 6, {
+        align: "right",
+      });
+    }
+    doc.text(
+      (signer?.jabatan?.toUpperCase() || "KASI PEMERINTAH"),
+      pageWidth - 30,
+      (ttdY += 12),
+      { align: "right" }
+    );
     doc.text("Pemohon", 30, ttdY);
     // TTD space
     ttdY += 32;
     doc.text(form.nama || "(................................)", 37, ttdY, {
       align: "center",
     });
-
     doc.text(
-      villageInfo?.kasipemerintah?.trim()
-        ? villageInfo.kasipemerintah
-        : "(................................)",
+      signer?.nama || villageInfo?.kasipemerintah?.trim() || "(................................)",
       pageWidth - 35,
       ttdY,
       { align: "right" }
@@ -330,6 +370,36 @@ const CreatePengantarLetter: React.FC<{
         )}
       </div>
       <form className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        {/* Pilih Penandatangan */}
+        <div className="md:col-span-2 mb-2">
+          <label className="block font-semibold mb-1">Tanda Tangan Oleh</label>
+          <select
+            className="input w-full"
+            value={signer?.nama || ""}
+            onChange={e => {
+              let selected: { nama: string; jabatan: string } | null = null;
+              if (villageInfo?.perangkat?.length) {
+                selected = villageInfo.perangkat.find((p: any) => p.nama === e.target.value);
+              } else {
+                const found = perangkatFallback.find((p) => p.nama === e.target.value);
+                selected = found ? { nama: found.nama, jabatan: found.jabatan } : null;
+              }
+              setSigner(selected);
+            }}
+          >
+            {villageInfo?.perangkat?.length
+              ? villageInfo.perangkat.map((p: any) => (
+                  <option key={p.nama} value={p.nama}>
+                    {p.jabatan} - {p.nama}
+                  </option>
+                ))
+              : perangkatFallback.map((p) => (
+                  <option key={p.nama} value={p.nama}>
+                    {p.jabatan} - {p.nama}
+                  </option>
+                ))}
+          </select>
+        </div>
         <input
           name="nama"
           value={form.nama}
@@ -563,18 +633,26 @@ const CreatePengantarLetter: React.FC<{
           <div className="text-center">
             <div>
               Kedungwringin,{" "}
-              {new Date().toLocaleDateString("id-ID", {
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-              })}
+              {form.tanggal
+                ? new Date(form.tanggal).toLocaleDateString("id-ID", {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  })
+                : new Date().toLocaleDateString("id-ID", {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  })}
             </div>
-            <div className="font-bold">KASI PEMERINTAH</div>
-            <div style={{ height: "60px" }}></div>
+            {/* Jika bukan kepala desa, tampilkan An. KEPALA DESA KEDUNGWRINGIN */}
+            {signer && !signer.jabatan.toLowerCase().includes('kepala desa') && (
+              <div className="font-bold">An. KEPALA DESA KEDUNGWRINGIN</div>
+            )}
+            <div className="font-bold">{signer?.jabatan ? signer.jabatan.toUpperCase() : (signer?.nama ? '' : '(................................)')}</div>
+            <div style={{ height: '60px' }}></div>
             <div className="font-bold underline">
-              {villageInfo?.kasipemerintah?.trim()
-                ? villageInfo.kasipemerintah
-                : "(................................)"}
+              {signer?.nama || villageInfo?.kasipemerintah?.trim() || '(................................)'}
             </div>
           </div>
         </div>

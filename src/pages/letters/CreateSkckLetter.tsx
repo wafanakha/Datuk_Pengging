@@ -49,6 +49,17 @@ const initialForm: SkckFormData = {
   regDate: "",
 };
 
+const perangkatFallback = [
+  { key: "kepaladesa", label: "Kepala Desa" },
+  { key: "sekdes", label: "Sekretaris Desa" },
+  { key: "kasipemerintah", label: "Kasi Pemerintahan" },
+  { key: "kasikesra", label: "Kasi Kesejahteraan" },
+  { key: "kasipelayanan", label: "Kasi Pelayanan" },
+  { key: "kaurumum", label: "Kaur Umum dan Tata Usaha" },
+  { key: "kaurkeuangan", label: "Kaur Keuangan" },
+  { key: "kaurperencanaan", label: "Kaur Perencanaan" },
+];
+
 const CreateSkckLetter: React.FC<{
   editData?: Letter;
   isEditMode?: boolean;
@@ -58,6 +69,9 @@ const CreateSkckLetter: React.FC<{
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
   const [villageInfo, setVillageInfo] = useState<any>(null);
+  const [signer, setSigner] = useState<{ key: string; label: string }>(
+    perangkatFallback[2]
+  ); // Default Kasi Pemerintahan
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -70,6 +84,11 @@ const CreateSkckLetter: React.FC<{
         ...initialForm,
         ...parsed,
       });
+      // Try to get signer from parsed content, fallback to default
+      const signerKey = (parsed as any)?.signerKey || (parsed as any)?.signer || "kasipemerintah";
+      setSigner(
+        perangkatFallback.find((p) => p.key === signerKey) || perangkatFallback[2]
+      );
     }
   }, [editData]);
 
@@ -81,6 +100,11 @@ const CreateSkckLetter: React.FC<{
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSignerChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = perangkatFallback.find((p) => p.key === e.target.value);
+    if (selected) setSigner(selected);
   };
 
   const generatePDF = (): jsPDF => {
@@ -220,10 +244,12 @@ const CreateSkckLetter: React.FC<{
       ttdY,
       { align: "right" }
     );
-    doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 15, ttdY + 6, {
-      align: "right",
-    });
-    doc.text("KASI PEMERINTAH", pageWidth - 15, (ttdY += 12), {
+    if (signer.key !== "kepaladesa") {
+      doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 15, ttdY + 6, {
+        align: "right",
+      });
+    }
+    doc.text(signer.label.toUpperCase(), pageWidth - 15, (ttdY += 12), {
       align: "right",
     });
     doc.text("Pemohon", 30, ttdY);
@@ -234,8 +260,8 @@ const CreateSkckLetter: React.FC<{
     });
 
     doc.text(
-      villageInfo?.kasipemerintah?.trim()
-        ? villageInfo.kasipemerintah
+      villageInfo?.[signer.key]?.trim()
+        ? villageInfo[signer.key]
         : "(................................)",
       pageWidth - 15,
       ttdY,
@@ -477,6 +503,20 @@ const CreateSkckLetter: React.FC<{
             type="date"
             className="input"
           />
+        </div>
+        <div>
+          <label className="text-xs text-gray-600 mb-1">Penandatangan Surat</label>
+          <select
+            className="input"
+            value={signer.key}
+            onChange={handleSignerChange}
+          >
+            {perangkatFallback.map((p) => (
+              <option key={p.key} value={p.key}>
+                {p.label}
+              </option>
+            ))}
+          </select>
         </div>
       </form>
       <div className="flex gap-2 mb-6">
@@ -732,8 +772,10 @@ const CreateSkckLetter: React.FC<{
                     year: "numeric",
                   })}
                 </p>
-                <p>An. KEPALA DESA KEDUNGWRINGIN</p>
-                <p>KASI PEMERINTAH</p>
+                {signer.key !== "kepaladesa" && (
+                  <p>An. KEPALA DESA KEDUNGWRINGIN</p>
+                )}
+                <p>{signer.label.toUpperCase()}</p>
               </div>
               <div style={{ marginTop: "auto" }}>
                 <div
@@ -745,8 +787,8 @@ const CreateSkckLetter: React.FC<{
                 ></div>
                 <p>
                   <strong>
-                    {villageInfo?.kasipemerintah?.trim()
-                      ? villageInfo.kasipemerintah
+                    {villageInfo?.[signer.key]?.trim()
+                      ? villageInfo[signer.key]
                       : "(................................)"}
                   </strong>
                 </p>

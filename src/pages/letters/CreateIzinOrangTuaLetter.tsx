@@ -3,7 +3,7 @@ import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import Modal from "../../components/ui/Modal";
 import jsPDF from "jspdf";
-import { residentService } from "../../database/residentService";
+import { residentService } from "../../services/residentService";
 import { LetterHistory } from "../../types";
 import { saveLetterHistory } from "../../services/residentService";
 const initialForm = {
@@ -167,86 +167,82 @@ const generatePDF = (form: any): jsPDF => {
 const CreateIzinOrangTuaLetter: React.FC = () => {
   const [form, setForm] = useState<any>(initialForm);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [waliSearch, setWaliSearch] = useState("");
-  const [waliResults, setWaliResults] = useState<any[]>([]);
-  const [searchingWali, setSearchingWali] = useState(false);
-  const [selectedWali, setSelectedWali] = useState<any>(null);
-  const [anakList, setAnakList] = useState<any[]>([]);
-  const [kkMembers, setKkMembers] = useState<any[]>([]);
+  // Search state for ayah, ibu, anak, pasangan
+  const [search, setSearch] = useState({ ayah: "", ibu: "", anak: "", pasangan: "" });
+  const [results, setResults] = useState({ ayah: [], ibu: [], anak: [], pasangan: [] });
+
+  // Search handlers
+  const handleSearch = async (role: "ayah" | "ibu" | "anak" | "pasangan") => {
+    const value = search[role];
+    if (value.length < 3) {
+      setResults((r) => ({ ...r, [role]: [] }));
+      return;
+    }
+    const found = await residentService.searchByNikOrName(value);
+    setResults((r) => ({ ...r, [role]: found }));
+  };
+
+  // Select and autofill
+  const handleSelectPerson = (role: string, person: any) => {
+    if (role === "ayah") {
+      setForm((f: any) => ({
+        ...f,
+        ayahNama: person.name,
+        ayahBin: person.fatherName || "",
+        ayahNik: person.nik,
+        ayahTtl: `${person.birthPlace}, ${person.birthDate}`,
+        ayahKewarganegaraan: person.nationality || "INDONESIA",
+        ayahAgama: person.religion,
+        ayahPekerjaan: person.occupation,
+        ayahAlamat: person.address,
+      }));
+    } else if (role === "ibu") {
+      setForm((f: any) => ({
+        ...f,
+        ibuNama: person.name,
+        ibuBinti: person.fatherName || "",
+        ibuNik: person.nik,
+        ibuTtl: `${person.birthPlace}, ${person.birthDate}`,
+        ibuKewarganegaraan: person.nationality || "INDONESIA",
+        ibuAgama: person.religion,
+        ibuPekerjaan: person.occupation,
+        ibuAlamat: person.address,
+      }));
+    } else if (role === "anak") {
+      setForm((f: any) => ({
+        ...f,
+        anakNama: person.name,
+        anakBinti: person.fatherName || "",
+        anakNik: person.nik,
+        anakTtl: `${person.birthPlace}, ${person.birthDate}`,
+        anakKewarganegaraan: person.nationality || "INDONESIA",
+        anakAgama: person.religion,
+        anakPekerjaan: person.occupation,
+        anakAlamat: person.address,
+      }));
+    } else if (role === "pasangan") {
+      setForm((f: any) => ({
+        ...f,
+        pasanganNama: person.name,
+        pasanganBin: person.fatherName || "",
+        pasanganNik: person.nik,
+        pasanganTtl: `${person.birthPlace}, ${person.birthDate}`,
+        pasanganKewarganegaraan: person.nationality || "INDONESIA",
+        pasanganAgama: person.religion,
+        pasanganPekerjaan: person.occupation,
+        pasanganAlamat: person.address,
+      }));
+    }
+    setResults((r) => ({ ...r, [role]: [] }));
+    setSearch((s) => ({ ...s, [role]: "" }));
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleWaliSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    setWaliSearch(e.target.value);
-    if (e.target.value.length < 3) {
-      setWaliResults([]);
-      return;
-    }
-    setSearchingWali(true);
-    const results = await residentService.searchResidents(e.target.value);
-    setWaliResults(results);
-    setSearchingWali(false);
-  };
+  // Hapus semua state dan handler lama terkait wali/kkMembers/anakList
 
-  const handleSelectWali = async (wali: any) => {
-    setSelectedWali(wali);
-    setWaliSearch(wali.nik + " - " + wali.name);
-    setWaliResults([]);
-    // Cari semua anggota KK berdasarkan KK wali
-    setSearchingWali(true);
-    const allMembers = await residentService.searchResidents(wali.kk);
-    setSearchingWali(false);
-    setKkMembers(allMembers);
-    setAnakList(
-      allMembers.filter(
-        (m: any) => m.shdk && m.shdk.toLowerCase().includes("anak")
-      )
-    );
-    // Autofill data ayah/ibu sesuai gender wali
-    if (wali.gender === "Laki-laki") {
-      setForm((f: any) => ({
-        ...f,
-        ayahNama: wali.name,
-        ayahBin: wali.fatherName || "",
-        ayahNik: wali.nik,
-        ayahTtl: `${wali.birthPlace}, ${wali.birthDate}`,
-        ayahKewarganegaraan: wali.nationality || "INDONESIA",
-        ayahAgama: wali.religion,
-        ayahPekerjaan: wali.occupation,
-        ayahAlamat: wali.address,
-      }));
-    } else {
-      setForm((f: any) => ({
-        ...f,
-        ibuNama: wali.name,
-        ibuBinti: wali.fatherName || "",
-        ibuNik: wali.nik,
-        ibuTtl: `${wali.birthPlace}, ${wali.birthDate}`,
-        ibuKewarganegaraan: wali.nationality || "INDONESIA",
-        ibuAgama: wali.religion,
-        ibuPekerjaan: wali.occupation,
-        ibuAlamat: wali.address,
-      }));
-    }
-  };
-
-  const handleSelectAnak = (anak: any) => {
-    setForm((f: any) => ({
-      ...f,
-      anakNama: anak.name,
-      anakBinti: anak.fatherName || "",
-      anakNik: anak.nik,
-      anakTtl: `${anak.birthPlace}, ${anak.birthDate}`,
-      anakKewarganegaraan: anak.nationality || "INDONESIA",
-      anakAgama: anak.religion,
-      anakPekerjaan: anak.occupation,
-      anakAlamat: anak.address,
-    }));
-  };
-
-  // Perbaiki: handleExportPDF dan handlePrintPDF tanpa parameter, akses langsung state form
   const handleExportPDF = () => {
     const doc = generatePDF(form);
     doc.save("surat_izin_orang_tua_n5.pdf");
@@ -282,229 +278,163 @@ const CreateIzinOrangTuaLetter: React.FC = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <h2 className="text-2xl font-bold">Surat Izin Orang Tua (N5)</h2>
-      <div className="mb-4">
-        <input
-          type="text"
-          className="input w-full"
-          placeholder="Cari wali (NIK/Nama)..."
-          value={waliSearch}
-          onChange={handleWaliSearch}
-        />
-        {searchingWali && (
-          <div className="text-sm text-gray-500">Mencari wali...</div>
-        )}
-        {waliResults.length > 0 && (
-          <div className="border rounded bg-white shadow max-h-48 overflow-y-auto z-10 relative">
-            {waliResults.map((r) => (
-              <div
-                key={r.id}
-                className="px-3 py-2 hover:bg-teal-100 cursor-pointer"
-                onClick={() => handleSelectWali(r)}
-              >
-                {r.nik} - {r.name} ({r.address})
-              </div>
-            ))}
+      <h2 className="text-2xl font-bold mb-4">Surat Izin Orang Tua (N5)</h2>
+      {/* Blok Pencarian & Form Data */}
+      <div className="space-y-4">
+        {/* Card Ayah */}
+        <div className="bg-gray-50 border rounded-lg p-4 shadow-sm">
+          <div className="font-semibold text-lg mb-1">Data Ayah</div>
+          <div className="text-xs text-gray-500 mb-2">Cari dan pilih data ayah berdasarkan NIK atau Nama. Setelah dipilih, data bisa diedit manual.</div>
+          <div className="flex gap-2 mb-2">
+            <Input
+              value={search.ayah}
+              onChange={(e) => setSearch((s) => ({ ...s, ayah: e.target.value }))}
+              placeholder="Ketik NIK atau nama ayah..."
+            />
+            <Button type="button" variant="secondary" onClick={() => handleSearch("ayah")}>Cari</Button>
           </div>
-        )}
+          {results.ayah.length > 0 && (
+            <div className="bg-white border rounded shadow mt-1 max-h-48 overflow-auto z-10 relative">
+              {results.ayah.map((r: any) => (
+                <div
+                  key={r.id}
+                  className="px-3 py-2 hover:bg-teal-100 cursor-pointer"
+                  onClick={() => handleSelectPerson("ayah", r)}
+                >
+                  {r.nik} - {r.name}
+                </div>
+              ))}
+            </div>
+          )}
+          {/* Form Data Ayah */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <Input label="Nama Ayah" name="ayahNama" value={form.ayahNama} onChange={handleChange} required />
+            <Input label="Bin Ayah" name="ayahBin" value={form.ayahBin} onChange={handleChange} />
+            <Input label="NIK Ayah" name="ayahNik" value={form.ayahNik} onChange={handleChange} />
+            <Input label="Tempat/Tanggal Lahir Ayah" name="ayahTtl" value={form.ayahTtl} onChange={handleChange} />
+            <Input label="Kewarganegaraan Ayah" name="ayahKewarganegaraan" value={form.ayahKewarganegaraan} onChange={handleChange} />
+            <Input label="Agama Ayah" name="ayahAgama" value={form.ayahAgama} onChange={handleChange} />
+            <Input label="Pekerjaan Ayah" name="ayahPekerjaan" value={form.ayahPekerjaan} onChange={handleChange} />
+            <Input label="Alamat Ayah" name="ayahAlamat" value={form.ayahAlamat} onChange={handleChange} />
+          </div>
+        </div>
+        {/* Card Ibu */}
+        <div className="bg-gray-50 border rounded-lg p-4 shadow-sm">
+          <div className="font-semibold text-lg mb-1">Data Ibu</div>
+          <div className="text-xs text-gray-500 mb-2">Cari dan pilih data ibu berdasarkan NIK atau Nama. Setelah dipilih, data bisa diedit manual.</div>
+          <div className="flex gap-2 mb-2">
+            <Input
+              value={search.ibu}
+              onChange={(e) => setSearch((s) => ({ ...s, ibu: e.target.value }))}
+              placeholder="Ketik NIK atau nama ibu..."
+            />
+            <Button type="button" variant="secondary" onClick={() => handleSearch("ibu")}>Cari</Button>
+          </div>
+          {results.ibu.length > 0 && (
+            <div className="bg-white border rounded shadow mt-1 max-h-48 overflow-auto z-10 relative">
+              {results.ibu.map((r: any) => (
+                <div
+                  key={r.id}
+                  className="px-3 py-2 hover:bg-teal-100 cursor-pointer"
+                  onClick={() => handleSelectPerson("ibu", r)}
+                >
+                  {r.nik} - {r.name}
+                </div>
+              ))}
+            </div>
+          )}
+          {/* Form Data Ibu */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <Input label="Nama Ibu" name="ibuNama" value={form.ibuNama} onChange={handleChange} required />
+            <Input label="Binti Ibu" name="ibuBinti" value={form.ibuBinti} onChange={handleChange} />
+            <Input label="NIK Ibu" name="ibuNik" value={form.ibuNik} onChange={handleChange} />
+            <Input label="Tempat/Tanggal Lahir Ibu" name="ibuTtl" value={form.ibuTtl} onChange={handleChange} />
+            <Input label="Kewarganegaraan Ibu" name="ibuKewarganegaraan" value={form.ibuKewarganegaraan} onChange={handleChange} />
+            <Input label="Agama Ibu" name="ibuAgama" value={form.ibuAgama} onChange={handleChange} />
+            <Input label="Pekerjaan Ibu" name="ibuPekerjaan" value={form.ibuPekerjaan} onChange={handleChange} />
+            <Input label="Alamat Ibu" name="ibuAlamat" value={form.ibuAlamat} onChange={handleChange} />
+          </div>
+        </div>
+        {/* Card Anak */}
+        <div className="bg-gray-50 border rounded-lg p-4 shadow-sm">
+          <div className="font-semibold text-lg mb-1">Data Anak</div>
+          <div className="text-xs text-gray-500 mb-2">Cari dan pilih data anak berdasarkan NIK atau Nama. Setelah dipilih, data bisa diedit manual.</div>
+          <div className="flex gap-2 mb-2">
+            <Input
+              value={search.anak}
+              onChange={(e) => setSearch((s) => ({ ...s, anak: e.target.value }))}
+              placeholder="Ketik NIK atau nama anak..."
+            />
+            <Button type="button" variant="secondary" onClick={() => handleSearch("anak")}>Cari</Button>
+          </div>
+          {results.anak.length > 0 && (
+            <div className="bg-white border rounded shadow mt-1 max-h-48 overflow-auto z-10 relative">
+              {results.anak.map((r: any) => (
+                <div
+                  key={r.id}
+                  className="px-3 py-2 hover:bg-teal-100 cursor-pointer"
+                  onClick={() => handleSelectPerson("anak", r)}
+                >
+                  {r.nik} - {r.name}
+                </div>
+              ))}
+            </div>
+          )}
+          {/* Form Data Anak */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <Input label="Nama Anak" name="anakNama" value={form.anakNama} onChange={handleChange} required />
+            <Input label="Binti Anak" name="anakBinti" value={form.anakBinti} onChange={handleChange} />
+            <Input label="NIK Anak" name="anakNik" value={form.anakNik} onChange={handleChange} />
+            <Input label="Tempat/Tanggal Lahir Anak" name="anakTtl" value={form.anakTtl} onChange={handleChange} />
+            <Input label="Kewarganegaraan Anak" name="anakKewarganegaraan" value={form.anakKewarganegaraan} onChange={handleChange} />
+            <Input label="Agama Anak" name="anakAgama" value={form.anakAgama} onChange={handleChange} />
+            <Input label="Pekerjaan Anak" name="anakPekerjaan" value={form.anakPekerjaan} onChange={handleChange} />
+            <Input label="Alamat Anak" name="anakAlamat" value={form.anakAlamat} onChange={handleChange} />
+          </div>
+        </div>
+        {/* Card Pasangan */}
+        <div className="bg-gray-50 border rounded-lg p-4 shadow-sm">
+          <div className="font-semibold text-lg mb-1">Data Pasangan</div>
+          <div className="text-xs text-gray-500 mb-2">Cari dan pilih data pasangan berdasarkan NIK atau Nama. Setelah dipilih, data bisa diedit manual.</div>
+          <div className="flex gap-2 mb-2">
+            <Input
+              value={search.pasangan}
+              onChange={(e) => setSearch((s) => ({ ...s, pasangan: e.target.value }))}
+              placeholder="Ketik NIK atau nama pasangan..."
+            />
+            <Button type="button" variant="secondary" onClick={() => handleSearch("pasangan")}>Cari</Button>
+          </div>
+          {results.pasangan.length > 0 && (
+            <div className="bg-white border rounded shadow mt-1 max-h-48 overflow-auto z-10 relative">
+              {results.pasangan.map((r: any) => (
+                <div
+                  key={r.id}
+                  className="px-3 py-2 hover:bg-teal-100 cursor-pointer"
+                  onClick={() => handleSelectPerson("pasangan", r)}
+                >
+                  {r.nik} - {r.name}
+                </div>
+              ))}
+            </div>
+          )}
+          {/* Form Data Pasangan */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <Input label="Nama Pasangan" name="pasanganNama" value={form.pasanganNama} onChange={handleChange} required />
+            <Input label="Bin/Binti Pasangan" name="pasanganBin" value={form.pasanganBin} onChange={handleChange} />
+            <Input label="NIK Pasangan" name="pasanganNik" value={form.pasanganNik} onChange={handleChange} />
+            <Input label="Tempat/Tanggal Lahir Pasangan" name="pasanganTtl" value={form.pasanganTtl} onChange={handleChange} />
+            <Input label="Kewarganegaraan Pasangan" name="pasanganKewarganegaraan" value={form.pasanganKewarganegaraan} onChange={handleChange} />
+            <Input label="Agama Pasangan" name="pasanganAgama" value={form.pasanganAgama} onChange={handleChange} />
+            <Input label="Pekerjaan Pasangan" name="pasanganPekerjaan" value={form.pasanganPekerjaan} onChange={handleChange} />
+            <Input label="Alamat Pasangan" name="pasanganAlamat" value={form.pasanganAlamat} onChange={handleChange} />
+          </div>
+        </div>
       </div>
-      <form className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-6 rounded shadow mb-4">
-        <Input
-          label="Nama Ayah"
-          name="ayahNama"
-          value={form.ayahNama}
-          onChange={handleChange}
-          required
-        />
-        <Input
-          label="Bin Ayah"
-          name="ayahBin"
-          value={form.ayahBin}
-          onChange={handleChange}
-        />
-        <Input
-          label="NIK Ayah"
-          name="ayahNik"
-          value={form.ayahNik}
-          onChange={handleChange}
-        />
-        <Input
-          label="Tempat/Tanggal Lahir Ayah"
-          name="ayahTtl"
-          value={form.ayahTtl}
-          onChange={handleChange}
-        />
-        <Input
-          label="Kewarganegaraan Ayah"
-          name="ayahKewarganegaraan"
-          value={form.ayahKewarganegaraan}
-          onChange={handleChange}
-        />
-        <Input
-          label="Agama Ayah"
-          name="ayahAgama"
-          value={form.ayahAgama}
-          onChange={handleChange}
-        />
-        <Input
-          label="Pekerjaan Ayah"
-          name="ayahPekerjaan"
-          value={form.ayahPekerjaan}
-          onChange={handleChange}
-        />
-        <Input
-          label="Alamat Ayah"
-          name="ayahAlamat"
-          value={form.ayahAlamat}
-          onChange={handleChange}
-        />
-        <Input
-          label="Nama Ibu"
-          name="ibuNama"
-          value={form.ibuNama}
-          onChange={handleChange}
-          required
-        />
-        <Input
-          label="Binti Ibu"
-          name="ibuBinti"
-          value={form.ibuBinti}
-          onChange={handleChange}
-        />
-        <Input
-          label="NIK Ibu"
-          name="ibuNik"
-          value={form.ibuNik}
-          onChange={handleChange}
-        />
-        <Input
-          label="Tempat/Tanggal Lahir Ibu"
-          name="ibuTtl"
-          value={form.ibuTtl}
-          onChange={handleChange}
-        />
-        <Input
-          label="Kewarganegaraan Ibu"
-          name="ibuKewarganegaraan"
-          value={form.ibuKewarganegaraan}
-          onChange={handleChange}
-        />
-        <Input
-          label="Agama Ibu"
-          name="ibuAgama"
-          value={form.ibuAgama}
-          onChange={handleChange}
-        />
-        <Input
-          label="Pekerjaan Ibu"
-          name="ibuPekerjaan"
-          value={form.ibuPekerjaan}
-          onChange={handleChange}
-        />
-        <Input
-          label="Alamat Ibu"
-          name="ibuAlamat"
-          value={form.ibuAlamat}
-          onChange={handleChange}
-        />
-        <Input
-          label="Nama Anak"
-          name="anakNama"
-          value={form.anakNama}
-          onChange={handleChange}
-          required
-        />
-        <Input
-          label="Binti Anak"
-          name="anakBinti"
-          value={form.anakBinti}
-          onChange={handleChange}
-        />
-        <Input
-          label="NIK Anak"
-          name="anakNik"
-          value={form.anakNik}
-          onChange={handleChange}
-        />
-        <Input
-          label="Tempat/Tanggal Lahir Anak"
-          name="anakTtl"
-          value={form.anakTtl}
-          onChange={handleChange}
-        />
-        <Input
-          label="Kewarganegaraan Anak"
-          name="anakKewarganegaraan"
-          value={form.anakKewarganegaraan}
-          onChange={handleChange}
-        />
-        <Input
-          label="Agama Anak"
-          name="anakAgama"
-          value={form.anakAgama}
-          onChange={handleChange}
-        />
-        <Input
-          label="Pekerjaan Anak"
-          name="anakPekerjaan"
-          value={form.anakPekerjaan}
-          onChange={handleChange}
-        />
-        <Input
-          label="Alamat Anak"
-          name="anakAlamat"
-          value={form.anakAlamat}
-          onChange={handleChange}
-        />
-        <Input
-          label="Nama Pasangan"
-          name="pasanganNama"
-          value={form.pasanganNama}
-          onChange={handleChange}
-          required
-        />
-        <Input
-          label="Bin/Binti Pasangan"
-          name="pasanganBin"
-          value={form.pasanganBin}
-          onChange={handleChange}
-        />
-        <Input
-          label="NIK Pasangan"
-          name="pasanganNik"
-          value={form.pasanganNik}
-          onChange={handleChange}
-        />
-        <Input
-          label="Tempat/Tanggal Lahir Pasangan"
-          name="pasanganTtl"
-          value={form.pasanganTtl}
-          onChange={handleChange}
-        />
-        <Input
-          label="Kewarganegaraan Pasangan"
-          name="pasanganKewarganegaraan"
-          value={form.pasanganKewarganegaraan}
-          onChange={handleChange}
-        />
-        <Input
-          label="Agama Pasangan"
-          name="pasanganAgama"
-          value={form.pasanganAgama}
-          onChange={handleChange}
-        />
-        <Input
-          label="Pekerjaan Pasangan"
-          name="pasanganPekerjaan"
-          value={form.pasanganPekerjaan}
-          onChange={handleChange}
-        />
-        <Input
-          label="Alamat Pasangan"
-          name="pasanganAlamat"
-          value={form.pasanganAlamat}
-          onChange={handleChange}
-        />
+      {/* Divider */}
+      <div className="border-t my-6" />
+      {/* Formulir Data Surat (Tanggal & Tombol) */}
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="text-lg font-bold mb-4">Formulir Data Surat</div>
         <Input
           label="Tanggal Surat"
           name="tanggalSurat"
@@ -513,19 +443,7 @@ const CreateIzinOrangTuaLetter: React.FC = () => {
           onChange={handleChange}
           required
         />
-        <Input
-          label="Tanda Tangan Ayah (opsional)"
-          name="ayahTtd"
-          value={form.ayahTtd}
-          onChange={handleChange}
-        />
-        <Input
-          label="Tanda Tangan Ibu (opsional)"
-          name="ibuTtd"
-          value={form.ibuTtd}
-          onChange={handleChange}
-        />
-        <div className="md:col-span-2 flex space-x-2 mt-2">
+        <div className="flex space-x-2 mt-4">
           <Button variant="primary" onClick={handleExportPDF}>
             Export PDF
           </Button>
@@ -533,7 +451,7 @@ const CreateIzinOrangTuaLetter: React.FC = () => {
             Print Surat
           </Button>
         </div>
-      </form>
+      </div>
       {/* Preview Surat Izin Orang Tua (N5) */}
       <div className="bg-white p-6 border shadow max-w-[800px] mx-auto mb-8">
         <div className="text-center font-bold text-lg mb-2">
@@ -769,67 +687,6 @@ const CreateIzinOrangTuaLetter: React.FC = () => {
           </pre>
         </div>
       </Modal>
-      {selectedWali && kkMembers.length > 0 && (
-        <div className="mb-8">
-          <div className="bg-white rounded-lg shadow max-w-4xl mx-auto px-8 py-6">
-            <div className="font-semibold mb-4 text-lg text-center">
-              Anggota Kartu Keluarga
-            </div>
-            <div className="overflow-x-auto mb-6">
-              <table
-                className="min-w-full border text-xs"
-                style={{ minWidth: 700 }}
-              >
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="border px-6 py-3">Nama</th>
-                    <th className="border px-6 py-3">NIK</th>
-                    <th className="border px-6 py-3">SHDK</th>
-                    <th className="border px-6 py-3">TTL</th>
-                    <th className="border px-6 py-3">Alamat</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {kkMembers.map((m: any) => (
-                    <tr key={m.id} className="hover:bg-teal-50">
-                      <td className="border px-6 py-3 whitespace-nowrap">
-                        {m.name}
-                      </td>
-                      <td className="border px-6 py-3 whitespace-nowrap">
-                        {m.nik}
-                      </td>
-                      <td className="border px-6 py-3 whitespace-nowrap">
-                        {m.shdk}
-                      </td>
-                      <td className="border px-6 py-3 whitespace-nowrap">
-                        {m.birthPlace}, {m.birthDate}
-                      </td>
-                      <td className="border px-6 py-3 whitespace-nowrap">
-                        {m.address}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="font-semibold mb-2 text-center">
-              Pilih Anak yang akan diwalikan:
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-2">
-              {anakList.map((anak: any) => (
-                <Button
-                  key={anak.id}
-                  className="w-full py-3 text-base"
-                  variant="outline"
-                  onClick={() => handleSelectAnak(anak)}
-                >
-                  {anak.name} ({anak.nik})
-                </Button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
