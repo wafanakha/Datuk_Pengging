@@ -221,7 +221,6 @@ const CreatePengantarNumpangNikahLetter: React.FC<{
     );
     y += 14;
     // Tanda tangan
-    doc.text("Pemohon", 35, y);
     doc.text(
       `${villageInfo?.name || "Desa"}, ${new Date().toLocaleDateString(
         "id-ID"
@@ -230,7 +229,7 @@ const CreatePengantarNumpangNikahLetter: React.FC<{
       y
     );
     y += 7;
-    doc.text(`${form.nama}`, 35, y + 26);
+    doc.text(`${form.nama}`, 35, y + 35);
     doc.text(
       `An. ${villageInfo?.leaderTitle || "KEPALA DESA"} ${
         villageInfo?.name || ""
@@ -238,11 +237,12 @@ const CreatePengantarNumpangNikahLetter: React.FC<{
       140,
       y
     );
+    doc.text("Pemohon", 35, y + 6);
     doc.text("KASI PEMERINTAH", 140, y + 6);
     doc.text(
       `(${villageInfo?.leaderName || "................................"})`,
       140,
-      y + 26
+      y + 35
     );
     return doc;
   };
