@@ -168,7 +168,7 @@ const CreateKeramaianLetter: React.FC<{
       y,
       { align: "center" }
     );
-    y += 10;
+    y += 6;
     // Paragraf pembuka
     doc.setFontSize(10);
     doc.text(
@@ -242,19 +242,19 @@ const CreateKeramaianLetter: React.FC<{
       y,
       { maxWidth: pageWidth - 50 }
     );
-    y += 12;
+    y += 6;
     // Footer info
-    doc.text("No. Reg", 28, y);
-    doc.text(":", 70, y);
-    doc.text(form.regNumber || "_________", 75, y);
+    doc.text("No. Reg", pageWidth / 2 - 20, y);
+    doc.text(":", pageWidth / 2, y);
+    doc.text(form.regNumber || "_________", pageWidth / 2 + 3, y);
     y += 7;
-    doc.text("Tanggal", 28, y);
-    doc.text(":", 70, y);
+    doc.text("Tanggal", pageWidth / 2 - 20, y);
+    doc.text(":", pageWidth / 2, y);
     doc.text(
       form.regDate
         ? new Date(form.regDate).toLocaleDateString("id-ID")
         : new Date().toLocaleDateString("id-ID"),
-      75,
+      pageWidth / 2 + 3,
       y
     );
     y += 10;
@@ -262,27 +262,27 @@ const CreateKeramaianLetter: React.FC<{
     const ttdY = y;
     doc.setFont("helvetica", "normal");
     doc.text("Pemohon", 30, ttdY);
-    doc.text("Mengetahui,", pageWidth / 2, ttdY, { align: "center" });
+    doc.text("Mengetahui,", pageWidth / 2, ttdY + 10, { align: "center" });
     doc.text(
       "Kedungwringin, " + new Date().toLocaleDateString("id-ID"),
       pageWidth - 70,
       ttdY
     );
-    doc.text("Camat Patikraja", pageWidth / 2, ttdY + 6, { align: "center" });
+    doc.text("Camat Patikraja", pageWidth / 2, ttdY + 16, { align: "center" });
     doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 80, ttdY + 6);
-    doc.text("KASI PEMERINTAH", pageWidth - 70, ttdY + 12);
+    doc.text("KASI PEMERINTAH", pageWidth - 65, ttdY + 12);
     // Spacer tanda tangan
 
     doc.text(
       form.nama && form.nama.trim() ? `(${form.nama})` : "()",
-      25,
+      30,
       ttdY + 35
     );
     doc.text(
       villageInfo?.kasipemerintah?.trim()
         ? `(${villageInfo.kasipemerintah})`
         : "()",
-      pageWidth - 70,
+      pageWidth - 55,
       ttdY + 35
     );
     doc.text(
@@ -290,7 +290,7 @@ const CreateKeramaianLetter: React.FC<{
         ? `(${form.camatName})`
         : "[Nama Camat]",
       pageWidth / 2,
-      ttdY + 35,
+      ttdY + 45,
       { align: "center" }
     );
     return doc;
@@ -472,56 +472,64 @@ const CreateKeramaianLetter: React.FC<{
           placeholder="No. Reg"
           className="input"
         />
-        <div className="flex gap-2">
-          <div className="flex flex-col flex-1">
-            <label className="text-xs text-gray-600 mb-1">Tanggal lahir</label>
-            <input
-              name="tanggalLahir"
-              value={form.tanggalLahir}
-              onChange={handleChange}
-              placeholder="Tanggal Lahir"
-              type="date"
-              className="input"
-            />
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <div className="flex flex-col flex-1">
+              <label className="text-xs text-gray-600 mb-1">
+                Tanggal lahir
+              </label>
+              <input
+                name="tanggalLahir"
+                value={form.tanggalLahir}
+                onChange={handleChange}
+                placeholder="Tanggal Lahir"
+                type="date"
+                className="input"
+              />
+            </div>
+            <div className="flex flex-col flex-1">
+              <label className="text-xs text-gray-600 mb-1">
+                Tanggal acara
+              </label>
+              <input
+                name="tanggalAcara"
+                value={form.tanggalAcara}
+                onChange={handleChange}
+                placeholder="Tanggal Acara"
+                type="date"
+                className="input"
+              />
+            </div>
           </div>
-          <div className="flex flex-col flex-1">
-            <label className="text-xs text-gray-600 mb-1">Tanggal acara</label>
-            <input
-              name="tanggalAcara"
-              value={form.tanggalAcara}
-              onChange={handleChange}
-              placeholder="Tanggal Acara"
-              type="date"
-              className="input"
-            />
-          </div>
-          <div className="flex flex-col flex-1">
-            <label className="text-xs text-gray-600 mb-1">
-              Tanggal surat rt
-            </label>
 
-            <input
-              name="rtDate"
-              value={form.rtDate}
-              onChange={handleChange}
-              placeholder="Tanggal RT"
-              type="date"
-              className="input"
-            />
-          </div>
-          <div className="flex flex-col flex-1">
-            <label className="text-xs text-gray-600 mb-1">Tanggal reg</label>
-
-            <input
-              name="regDate"
-              value={form.regDate}
-              onChange={handleChange}
-              placeholder="Tanggal Reg"
-              type="date"
-              className="input"
-            />
+          <div className="flex gap-2">
+            <div className="flex flex-col flex-1">
+              <label className="text-xs text-gray-600 mb-1">
+                Tanggal surat rt
+              </label>
+              <input
+                name="rtDate"
+                value={form.rtDate}
+                onChange={handleChange}
+                placeholder="Tanggal RT"
+                type="date"
+                className="input"
+              />
+            </div>
+            <div className="flex flex-col flex-1">
+              <label className="text-xs text-gray-600 mb-1">Tanggal reg</label>
+              <input
+                name="regDate"
+                value={form.regDate}
+                onChange={handleChange}
+                placeholder="Tanggal Reg"
+                type="date"
+                className="input"
+              />
+            </div>
           </div>
         </div>
+
         {/* Input nama camat manual */}
         <input
           name="camatName"
