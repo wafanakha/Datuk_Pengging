@@ -26,6 +26,7 @@ interface PengantarFormData {
   keteranganLain: string;
   NoReg: string;
   tanggal?: string;
+  camat: string;
 }
 
 const initialForm: PengantarFormData = {
@@ -43,6 +44,7 @@ const initialForm: PengantarFormData = {
   letterNumber: "",
   keteranganLain: "",
   NoReg: "",
+  camat: "",
 };
 
 const CreatePengantarLetter: React.FC<{
@@ -54,6 +56,7 @@ const CreatePengantarLetter: React.FC<{
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
   const [villageInfo, setVillageInfo] = useState<any>(null);
+  const [signer, setSigner] = useState<{ nama: string; jabatan: string } | null>(null);
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -67,8 +70,44 @@ const CreatePengantarLetter: React.FC<{
   }, [editData]);
 
   React.useEffect(() => {
-    villageService.getVillageInfo().then(setVillageInfo);
+    villageService.getVillageInfo().then((info) => {
+      setVillageInfo(info);
+      if (info?.perangkat?.length) {
+        // Default: Kepala Desa jika ada, jika tidak perangkat pertama
+        const kepalaDesa = info.perangkat.find((p: any) =>
+          p.jabatan.toLowerCase().includes("kepala desa")
+        );
+        setSigner(kepalaDesa || info.perangkat[0]);
+      } else if (info?.kasipemerintah) {
+        setSigner({ nama: info.kasipemerintah, jabatan: "Kasi Pemerintah" });
+      }
+    });
   }, []);
+
+  // Helper: fallback perangkat jika tidak ada array perangkat
+  const perangkatFallback: { nama: string; jabatan: string }[] = [];
+  if (villageInfo) {
+    // Mapping field Settings.tsx ke jabatan
+    const perangkatMap: Record<string, string> = {
+      leaderName: 'Kepala Desa',
+      sekretaris: 'Sekretaris Desa',
+      kaurUmumNTataUsaha: 'Kaur Umum & Tata Usaha',
+      kaurKeuangan: 'Kaur Keuangan',
+      kaurPerencanaan: 'Kaur Perencanaan',
+      kasipemerintah: 'Kasi Pemerintahan',
+      kasiKesejahteraan: 'Kasi Kesejahteraan',
+      kasiPelayanan: 'Kasi Pelayanan',
+      kadus1: 'Kepala Dusun I',
+      kadus2: 'Kepala Dusun II',
+      kadus3: 'Kepala Dusun III',
+    };
+    Object.entries(perangkatMap).forEach(([field, jabatan]) => {
+      const nama = villageInfo[field];
+      if (typeof nama === 'string' && nama.trim()) {
+        perangkatFallback.push({ nama: nama.trim(), jabatan });
+      }
+    });
+  }
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -159,7 +198,7 @@ const CreatePengantarLetter: React.FC<{
     y += 8;
     // Pembuka
     doc.text(
-      "Yang bertanda tangan di bawah ini, kami Kepala Desa Kedungwringin Kecamatan Patikraja Kabupaten Banyumas Provinsi Jawa Tengah, menerangkan bahwa:",
+      "     Yang bertanda tangan di bawah ini, kami Kepala Desa Kedungwringin Kecamatan Patikraja Kabupaten Banyumas Provinsi Jawa Tengah, menerangkan bahwa:",
       15,
       y,
       { maxWidth: pageWidth - 30 }
@@ -178,12 +217,13 @@ const CreatePengantarLetter: React.FC<{
       ["3. Warganegara", "Indonesia"],
       ["4. Agama", form.agama],
       ["5. Pekerjaan", form.pekerjaan],
-      ["6. Status Perkawinan", ""],
+      ["6. Status Perkawinan", `${form.statusKawin}`],
       ["7. Tempat Tinggal", `${form.alamat}`],
-      ["8. Surat Bukti diri", `NIK.${form.nik} | No. KK.`],
+      ["8. Surat Bukti diri", `NIK.${form.nik}`],
+      ["", `No. KK.${form.kk}`],
       ["9. Keperluan", `${form.keperluan}`],
-      ["10. Berlaku", ``],
-      ["10. Keterangan Lain", ``],
+      ["10. Berlaku", `${form.berlaku}`],
+      ["11. Keterangan Lain", `${form.keteranganLain}`],
     ];
     data.forEach(([label, value]) => {
       doc.text(label, 18, y);
@@ -191,49 +231,74 @@ const CreatePengantarLetter: React.FC<{
       doc.text(value || "-", 70, y);
       y += 7;
     });
-    y += 2;
+    y += 10;
     doc.text(
-      `Adalah benar warga Desa Kedungwringin dan surat ini dibuat untuk keperluan: ${
-        form.keperluan || "..."
-      } `,
+      "Demikian surat pengantar ini dibuat untuk dapat dipergunakan seperlunya.",
       15,
       y,
       { maxWidth: pageWidth - 30 }
     );
     y += 10;
+    // Footer info
+    doc.text("No. Reg", 90, y);
+    doc.text(":", 105, y);
+    doc.text(form.NoReg || "_________", 110, y);
+    y += 7;
+    doc.text("Tanggal", 90, y);
+    doc.text(":", 105, y);
     doc.text(
-      "Demikian surat pengantar ini dibuat untuk dapat dipergunakan sebagaimana mestinya.",
-      15,
-      y,
-      { maxWidth: pageWidth - 30 }
+      form.tanggal
+        ? new Date(form.tanggal).toLocaleDateString("id-ID")
+        : "__________",
+      110,
+      y
     );
-    y += 16;
-    // TTD
-    const ttdY = y;
+    let ttdY = y + 14;
+    // Pemohon kiri
+    // Camat tengah
+    // Pejabat kanan
     doc.text(
       `Kedungwringin, ${new Date().toLocaleDateString("id-ID", {
         day: "2-digit",
         month: "long",
         year: "numeric",
       })}`,
-      pageWidth - 15,
+      pageWidth - 23,
       ttdY,
       { align: "right" }
     );
-    y += 6;
-    doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 15, y, {
-      align: "right",
-    });
-    y += 6;
-    doc.text("KASI PEMERINTAH", pageWidth - 15, y, { align: "right" });
-    y += 24;
+    // Jika bukan kepala desa, tambahkan An. KEPALA DESA KEDUNGWRINGIN
+    if (signer && !signer.jabatan.toLowerCase().includes("kepala desa")) {
+      doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 15, ttdY + 6, {
+        align: "right",
+      });
+    }
     doc.text(
-      villageInfo?.kasipemerintah?.trim()
-        ? villageInfo.kasipemerintah
-        : "(................................)",
-      pageWidth - 15,
-      y,
+      (signer?.jabatan?.toUpperCase() || "KASI PEMERINTAH"),
+      pageWidth - 30,
+      (ttdY += 12),
       { align: "right" }
+    );
+    doc.text("Pemohon", 30, ttdY);
+    // TTD space
+    ttdY += 32;
+    doc.text(form.nama || "(................................)", 37, ttdY, {
+      align: "center",
+    });
+    doc.text(
+      signer?.nama || villageInfo?.kasipemerintah?.trim() || "(................................)",
+      pageWidth - 35,
+      ttdY,
+      { align: "right" }
+    );
+    doc.text("Mengetahui,", pageWidth / 2, (ttdY -= 12), { align: "center" });
+    doc.text("Camat Patikraja", pageWidth / 2, ttdY + 6, { align: "center" });
+    ttdY += 35;
+    doc.text(
+      form.camat || "(................................)",
+      pageWidth / 2,
+      ttdY,
+      { align: "center" }
     );
     return doc;
   };
@@ -305,6 +370,36 @@ const CreatePengantarLetter: React.FC<{
         )}
       </div>
       <form className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        {/* Pilih Penandatangan */}
+        <div className="md:col-span-2 mb-2">
+          <label className="block font-semibold mb-1">Tanda Tangan Oleh</label>
+          <select
+            className="input w-full"
+            value={signer?.nama || ""}
+            onChange={e => {
+              let selected: { nama: string; jabatan: string } | null = null;
+              if (villageInfo?.perangkat?.length) {
+                selected = villageInfo.perangkat.find((p: any) => p.nama === e.target.value);
+              } else {
+                const found = perangkatFallback.find((p) => p.nama === e.target.value);
+                selected = found ? { nama: found.nama, jabatan: found.jabatan } : null;
+              }
+              setSigner(selected);
+            }}
+          >
+            {villageInfo?.perangkat?.length
+              ? villageInfo.perangkat.map((p: any) => (
+                  <option key={p.nama} value={p.nama}>
+                    {p.jabatan} - {p.nama}
+                  </option>
+                ))
+              : perangkatFallback.map((p) => (
+                  <option key={p.nama} value={p.nama}>
+                    {p.jabatan} - {p.nama}
+                  </option>
+                ))}
+          </select>
+        </div>
         <input
           name="nama"
           value={form.nama}
@@ -320,7 +415,7 @@ const CreatePengantarLetter: React.FC<{
           className="input"
         />
         <input
-          name="KK"
+          name="kk"
           value={form.kk}
           onChange={handleChange}
           placeholder="KK"
@@ -347,7 +442,7 @@ const CreatePengantarLetter: React.FC<{
             />
             <label className="text-xs text-gray-600 mb-1">Berlaku sampai</label>
             <input
-              name="Berlaku"
+              name="berlaku"
               value={form.berlaku}
               onChange={handleChange}
               placeholder="Berlaku sampai"
@@ -356,7 +451,7 @@ const CreatePengantarLetter: React.FC<{
             />
             <label className="text-xs text-gray-600 mb-1">Tanggal</label>
             <input
-              name="Tanggal"
+              name="tanggal"
               value={form.tanggal}
               onChange={handleChange}
               placeholder="Tanggal"
@@ -394,7 +489,7 @@ const CreatePengantarLetter: React.FC<{
           className="input"
         />
         <input
-          name="status Perkawinan"
+          name="statusKawin"
           value={form.statusKawin}
           onChange={handleChange}
           placeholder="Status Perkawinan"
@@ -409,7 +504,7 @@ const CreatePengantarLetter: React.FC<{
         />
 
         <input
-          name="Keterangan Lain"
+          name="keteranganLain"
           value={form.keteranganLain}
           onChange={handleChange}
           placeholder="Keterangan lain"
@@ -423,10 +518,17 @@ const CreatePengantarLetter: React.FC<{
           className="input"
         />
         <input
-          name="No Reg"
+          name="NoReg"
           value={form.NoReg}
           onChange={handleChange}
           placeholder="No Reg"
+          className="input"
+        />
+        <input
+          name="camat"
+          value={form.camat}
+          onChange={handleChange}
+          placeholder="Nama Camat"
           className="input"
         />
       </form>
@@ -531,18 +633,26 @@ const CreatePengantarLetter: React.FC<{
           <div className="text-center">
             <div>
               Kedungwringin,{" "}
-              {new Date().toLocaleDateString("id-ID", {
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-              })}
+              {form.tanggal
+                ? new Date(form.tanggal).toLocaleDateString("id-ID", {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  })
+                : new Date().toLocaleDateString("id-ID", {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  })}
             </div>
-            <div className="font-bold">KASI PEMERINTAH</div>
-            <div style={{ height: "60px" }}></div>
+            {/* Jika bukan kepala desa, tampilkan An. KEPALA DESA KEDUNGWRINGIN */}
+            {signer && !signer.jabatan.toLowerCase().includes('kepala desa') && (
+              <div className="font-bold">An. KEPALA DESA KEDUNGWRINGIN</div>
+            )}
+            <div className="font-bold">{signer?.jabatan ? signer.jabatan.toUpperCase() : (signer?.nama ? '' : '(................................)')}</div>
+            <div style={{ height: '60px' }}></div>
             <div className="font-bold underline">
-              {villageInfo?.kasipemerintah?.trim()
-                ? villageInfo.kasipemerintah
-                : "(................................)"}
+              {signer?.nama || villageInfo?.kasipemerintah?.trim() || '(................................)'}
             </div>
           </div>
         </div>
