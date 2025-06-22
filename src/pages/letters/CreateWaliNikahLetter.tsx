@@ -7,6 +7,8 @@ import { letterService } from "../../database/letterService";
 import { villageService } from "../../database/villageService";
 import { LetterHistory } from "../../types";
 import { saveLetterHistory } from "../../services/residentService";
+import logo from "../../../logo-bms.png";
+
 interface WaliNikahFormData {
   waliNama: string;
   waliTempatTanggalLahir: string;
@@ -93,7 +95,38 @@ const CreateWaliNikahLetter: React.FC<{
 
   const generatePDF = (): jsPDF => {
     const doc = new jsPDF({ unit: "mm", format: "a4" });
-    let y = 20;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let y = 18;
+    doc.addImage(logo, "PNG", 15, 10, 24, 24);
+    // Header
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text("PEMERINTAHAN DESA KEDUNGWRINGIN", pageWidth / 2, y, {
+      align: "center",
+    });
+    y += 5;
+    doc.text("KECAMATAN PATIKRAJA KABUPATEN BANYUMAS", pageWidth / 2, y, {
+      align: "center",
+    });
+    y += 5;
+    doc.text("SEKRETARIAT DESA", pageWidth / 2, y, { align: "center" });
+    y += 5;
+    doc.text(
+      "Jl. Raya Kedungwringin No. 1 Kedungwringin Kode Pos 53171",
+      pageWidth / 2,
+      y,
+      { align: "center" }
+    );
+    y += 5;
+    doc.text("Telp. (0281) 638395", pageWidth / 2, y, { align: "center" });
+    y += 6;
+    doc.setLineWidth(0.8);
+    doc.line(15, y, pageWidth - 15, y);
+    y += 5;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text("Kode Desa: 02122013", 15, y);
+    y += 6;
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
     doc.text("SURAT KETERANGAN WALI NIKAH", 105, y, { align: "center" });
@@ -102,10 +135,10 @@ const CreateWaliNikahLetter: React.FC<{
     doc.setFontSize(11);
     doc.text(
       `Nomor : ${letterNumber || "........................................"}`,
-      60,
+      pageWidth / 2 - 10,
       y
     );
-    y += 7;
+    y += 5;
     doc.text(
       "     Yang bertanda tangan di bawah ini kami Kepala Desa Kedungwringin Kecamatan Patikraja",
       20,
