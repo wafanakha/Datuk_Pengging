@@ -133,7 +133,7 @@ const CreateDomisiliLetter: React.FC<{
     );
     doc.setFont("helvetica", "normal");
     doc.text(
-      "Yang bertanda tangan di bawah ini, kami Kepala Desa Kedungwringin Kecamatan Patikraja Kabupaten Banyumas Provinsi Jawa Tengah, menerangkan bahwa:",
+      "     Yang bertanda tangan di bawah ini, kami Kepala Desa Kedungwringin Kecamatan Patikraja Kabupaten Banyumas Provinsi Jawa Tengah, menerangkan bahwa:",
       15,
       70,
       { maxWidth: 180 }
@@ -164,7 +164,7 @@ const CreateDomisiliLetter: React.FC<{
       y += 9;
     });
     doc.text(
-      `Berdasarkan Surat Keterangan dari Ketua Rukun Tetangga Nomor ${
+      `     Berdasarkan Surat Keterangan dari Ketua Rukun Tetangga Nomor ${
         form.rtNumber || "Nomor"
       } Tanggal ${
         form.rtDate
@@ -177,7 +177,7 @@ const CreateDomisiliLetter: React.FC<{
     );
     y += 15;
     doc.text(
-      "Demikian Surat Keterangan ini kami buat atas permintaan yang bersangkutan agar yang berkepentingan mengetahui dan maklum.",
+      "     Demikian Surat Keterangan ini kami buat atas permintaan yang bersangkutan agar yang berkepentingan mengetahui dan maklum.",
       15,
       y,
       { maxWidth: 180 }
@@ -189,19 +189,19 @@ const CreateDomisiliLetter: React.FC<{
         month: "long",
         year: "numeric",
       })}`,
-      140,
+      146,
       y
     );
     y += 5;
     doc.text("An. KEPALA DESA KEDUNGWRINGIN", 140, y);
     y += 5;
-    doc.text("KASI PEMERINTAH", 140, y);
+    doc.text("KASI PEMERINTAH", 152, y);
     y += 30;
     doc.text(
       villageInfo?.kasipemerintah?.trim()
         ? villageInfo.kasipemerintah
         : "(................................)",
-      140,
+      162,
       y
     );
     return doc;
