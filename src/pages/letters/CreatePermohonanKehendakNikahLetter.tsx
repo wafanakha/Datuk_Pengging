@@ -18,8 +18,6 @@ const initialForm = {
     "Fotokopi akte kelahiran",
     "Fotokopi Kartu keluarga",
     "Pas poto 2x3=3 lembar berlatar belakang biru",
-    "………………………………..",
-    "………………………………..",
   ],
   namaPemohon: "",
 };
@@ -191,13 +189,40 @@ const CreatePermohonanKehendakNikahLetter: React.FC = () => {
         <div className="md:col-span-2">
           <label className="block font-semibold mb-1">Daftar Persyaratan</label>
           {form.daftarPersyaratan.map((item: string, idx: number) => (
-            <Input
-              key={idx}
-              value={item}
-              onChange={(e) => handlePersyaratanChange(idx, e.target.value)}
-              className="mb-2"
-            />
+            <div key={idx} className="flex items-center mb-2 gap-2">
+              <Input
+                value={item}
+                onChange={(e) => handlePersyaratanChange(idx, e.target.value)}
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="danger"
+                onClick={() => {
+                  const daftarPersyaratan = form.daftarPersyaratan.filter(
+                    (_, i) => i !== idx
+                  );
+                  setForm({ ...form, daftarPersyaratan });
+                }}
+                title="Hapus"
+              >
+                Hapus
+              </Button>
+            </div>
           ))}
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() =>
+              setForm({
+                ...form,
+                daftarPersyaratan: [...form.daftarPersyaratan, ""]
+              })
+            }
+            className="mt-2"
+          >
+            + Tambah Persyaratan
+          </Button>
         </div>
         <div className="md:col-span-2 flex space-x-2 mt-2">
           <Button
@@ -219,7 +244,8 @@ const CreatePermohonanKehendakNikahLetter: React.FC = () => {
       <div className="bg-white p-6 border shadow max-w-[800px] mx-auto mb-8">
         <div className="text-right font-bold text-sm mb-2">Model N2</div>
         <div className="mb-2">
-          Perihal: <span className="font-bold">Permohonan kehendak nikah</span>
+          Perihal:{" "}
+          <span className="font-bold">Permohonan kehendak nikah</span>
         </div>
         <div className="mb-2 text-right">
           Kedungwiringin,{" "}
