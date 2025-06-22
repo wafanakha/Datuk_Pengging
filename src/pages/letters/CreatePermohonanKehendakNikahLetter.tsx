@@ -61,11 +61,11 @@ function generatePermohonanKehendakNikahN2(form: any) {
   doc.text("Tempat Akad Nikah", 30, y + 18);
   doc.text(`: ${form.tempatAkad}`, 65, y + 18);
   doc.text(
-    "Bersama ini kami sampaikan surat-surat yang diperlukan untuk diperiksa sebagai berikut",
+    "Bersama ini kami sampaikan surat-surat yang diperlukan untuk diperiksa sebagai berikut:",
     25,
     y + 30
   );
-  y += 35;
+  y += 38;
   for (let i = 0; i < form.daftarPersyaratan.length; i++) {
     let item = form.daftarPersyaratan[i];
     doc.text(`${i + 1}. ${item}`, 27, y + i * 6);
@@ -73,16 +73,16 @@ function generatePermohonanKehendakNikahN2(form: any) {
   doc.setFont("helvetica", "normal");
   doc.text(
     "     Demikian permohonan ini kami sampaikan, kiranya dapat diperiksa, dihadiri dan dicatat sesuai",
-    10,
+    20,
     y + 60
   );
-  doc.text("dengan ketentuan peraturan perundang-undangan.", 10, y + 64);
-  doc.text("Diterima tanggal ………………", 10, y + 80);
-  doc.text("Yang menerima,", 10, y + 110);
-  doc.text("Kepala KUA/PPN LN", 10, y + 115);
+  doc.text("dengan ketentuan peraturan perundang-undangan.", 20, y + 64);
+  doc.text("Diterima tanggal ………………", 20, y + 80);
+  doc.text("Yang menerima,", 20, y + 110);
+  doc.text("Kepala KUA/PPN LN", 20, y + 115);
   doc.text("Wassalam,", 150, y + 80);
   doc.text("Pemohon", 150, y + 84);
-  doc.text(form.namaPemohon || "", 150, y + 110);
+  doc.text(form.namaPemohon || "", 150, y + 115);
   return doc;
 }
 
