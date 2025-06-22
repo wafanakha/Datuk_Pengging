@@ -12,6 +12,9 @@ import { saveLetterHistory } from "../../services/residentService";
 interface PengantarFormData {
   nama: string;
   nik: string;
+  kk: string;
+  statusKawin: string;
+  berlaku?: string;
   tempatLahir: string;
   tanggalLahir: string;
   jenisKelamin: string;
@@ -20,11 +23,16 @@ interface PengantarFormData {
   alamat: string;
   keperluan: string;
   letterNumber?: string;
+  keteranganLain: string;
+  NoReg: string;
+  tanggal?: string;
 }
 
 const initialForm: PengantarFormData = {
   nama: "",
   nik: "",
+  kk: "",
+  statusKawin: "",
   tempatLahir: "",
   tanggalLahir: "",
   jenisKelamin: "",
@@ -33,6 +41,8 @@ const initialForm: PengantarFormData = {
   alamat: "",
   keperluan: "",
   letterNumber: "",
+  keteranganLain: "",
+  NoReg: "",
 };
 
 const CreatePengantarLetter: React.FC<{
@@ -83,6 +93,8 @@ const CreatePengantarLetter: React.FC<{
       ...form,
       nama: resident.name,
       nik: resident.nik,
+      kk: resident.kk,
+      statusKawin: resident.maritalStatus,
       tempatLahir: resident.birthPlace,
       tanggalLahir: resident.birthDate,
       jenisKelamin: resident.gender,
@@ -106,21 +118,20 @@ const CreatePengantarLetter: React.FC<{
     doc.text("PEMERINTAHAN DESA KEDUNGWRINGIN", pageWidth / 2, y, {
       align: "center",
     });
-    y += 7;
+    y += 5;
     doc.text("KECAMATAN PATIKRAJA KABUPATEN BANYUMAS", pageWidth / 2, y, {
       align: "center",
     });
-    y += 7;
-    doc.setFontSize(10);
+    y += 5;
     doc.text("SEKRETARIAT DESA", pageWidth / 2, y, { align: "center" });
-    y += 7;
+    y += 5;
     doc.text(
       "Jl. Raya Kedungwringin No. 1 Kedungwringin Kode Pos 53171",
       pageWidth / 2,
       y,
       { align: "center" }
     );
-    y += 7;
+    y += 5;
     doc.text("Telp. (0281) 638395", pageWidth / 2, y, { align: "center" });
     y += 6;
     doc.setLineWidth(0.8);
@@ -134,7 +145,7 @@ const CreatePengantarLetter: React.FC<{
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
     doc.text("SURAT PENGANTAR", pageWidth / 2, y, { align: "center" });
-    y += 7;
+    y += 5;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
     doc.text(
@@ -156,19 +167,23 @@ const CreatePengantarLetter: React.FC<{
     y += 12;
     // Data warga
     const data = [
-      ["1. Nama Lengkap", form.nama],
-      ["2. Jenis Kelamin", form.jenisKelamin],
+      ["1. Nama", form.nama],
       [
-        "3. Tempat/Tgl Lahir",
+        "2. Tempat/Tgl Lahir",
         `${form.tempatLahir}, ${
           form.tanggalLahir &&
           new Date(form.tanggalLahir).toLocaleDateString("id-ID")
         }`,
       ],
+      ["3. Warganegara", "Indonesia"],
       ["4. Agama", form.agama],
-      ["5. No. KTP/NIK", form.nik],
-      ["6. Pekerjaan", form.pekerjaan],
-      ["7. Alamat", form.alamat],
+      ["5. Pekerjaan", form.pekerjaan],
+      ["6. Status Perkawinan", ""],
+      ["7. Tempat Tinggal", `${form.alamat}`],
+      ["8. Surat Bukti diri", `NIK.${form.nik} | No. KK.`],
+      ["9. Keperluan", `${form.keperluan}`],
+      ["10. Berlaku", ``],
+      ["10. Keterangan Lain", ``],
     ];
     data.forEach(([label, value]) => {
       doc.text(label, 18, y);
@@ -305,6 +320,13 @@ const CreatePengantarLetter: React.FC<{
           className="input"
         />
         <input
+          name="KK"
+          value={form.kk}
+          onChange={handleChange}
+          placeholder="KK"
+          className="input"
+        />
+        <input
           name="tempatLahir"
           value={form.tempatLahir}
           onChange={handleChange}
@@ -323,8 +345,33 @@ const CreatePengantarLetter: React.FC<{
               type="date"
               className="input"
             />
+            <label className="text-xs text-gray-600 mb-1">Berlaku sampai</label>
+            <input
+              name="Berlaku"
+              value={form.berlaku}
+              onChange={handleChange}
+              placeholder="Berlaku sampai"
+              type="date"
+              className="input"
+            />
+            <label className="text-xs text-gray-600 mb-1">Tanggal</label>
+            <input
+              name="Tanggal"
+              value={form.tanggal}
+              onChange={handleChange}
+              placeholder="Tanggal"
+              type="date"
+              className="input"
+            />
           </div>
         </div>
+        <textarea
+          name="keperluan"
+          value={form.keperluan}
+          onChange={handleChange}
+          placeholder="Keperluan"
+          className="input"
+        />
         <input
           name="jenisKelamin"
           value={form.jenisKelamin}
@@ -347,24 +394,39 @@ const CreatePengantarLetter: React.FC<{
           className="input"
         />
         <input
+          name="status Perkawinan"
+          value={form.statusKawin}
+          onChange={handleChange}
+          placeholder="Status Perkawinan"
+          className="input"
+        />
+        <input
           name="alamat"
           value={form.alamat}
           onChange={handleChange}
           placeholder="Alamat"
           className="input"
         />
-        <textarea
-          name="keperluan"
-          value={form.keperluan}
+
+        <input
+          name="Keterangan Lain"
+          value={form.keteranganLain}
           onChange={handleChange}
-          placeholder="Keperluan"
-          className="input col-span-2"
+          placeholder="Keterangan lain"
+          className="input"
         />
         <input
           name="letterNumber"
           value={form.letterNumber}
           onChange={handleChange}
           placeholder="Nomor Surat"
+          className="input"
+        />
+        <input
+          name="No Reg"
+          value={form.NoReg}
+          onChange={handleChange}
+          placeholder="No Reg"
           className="input"
         />
       </form>
