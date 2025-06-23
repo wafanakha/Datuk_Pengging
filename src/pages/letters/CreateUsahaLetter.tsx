@@ -247,7 +247,6 @@ const CreateUsahaLetter: React.FC<{
     y += 16;
 
     // TTD
-    const ttdY = y;
     doc.text(
       `Kedungwringin, ${new Date().toLocaleDateString("id-ID", {
         day: "2-digit",
@@ -255,7 +254,7 @@ const CreateUsahaLetter: React.FC<{
         year: "numeric",
       })}`,
       pageWidth - 20,
-      ttdY,
+      y,
       { align: "right" }
     );
     y += 6;

@@ -48,7 +48,10 @@ const CreateTidakMampuLetter: React.FC<{
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
   const [villageInfo, setVillageInfo] = useState<any>(null);
-  const [signer, setSigner] = useState<{ nama: string; jabatan: string } | null>(null);
+  const [signer, setSigner] = useState<{
+    nama: string;
+    jabatan: string;
+  } | null>(null);
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -81,21 +84,21 @@ const CreateTidakMampuLetter: React.FC<{
   if (villageInfo) {
     // Mapping field Settings.tsx ke jabatan
     const perangkatMap: Record<string, string> = {
-      leaderName: 'Kepala Desa',
-      sekretaris: 'Sekretaris Desa',
-      kaurUmumNTataUsaha: 'Kaur Umum & Tata Usaha',
-      kaurKeuangan: 'Kaur Keuangan',
-      kaurPerencanaan: 'Kaur Perencanaan',
-      kasipemerintah: 'Kasi Pemerintahan',
-      kasiKesejahteraan: 'Kasi Kesejahteraan',
-      kasiPelayanan: 'Kasi Pelayanan',
-      kadus1: 'Kepala Dusun I',
-      kadus2: 'Kepala Dusun II',
-      kadus3: 'Kepala Dusun III',
+      leaderName: "Kepala Desa",
+      sekretaris: "Sekretaris Desa",
+      kaurUmumNTataUsaha: "Kaur Umum & Tata Usaha",
+      kaurKeuangan: "Kaur Keuangan",
+      kaurPerencanaan: "Kaur Perencanaan",
+      kasipemerintah: "Kasi Pemerintahan",
+      kasiKesejahteraan: "Kasi Kesejahteraan",
+      kasiPelayanan: "Kasi Pelayanan",
+      kadus1: "Kepala Dusun I",
+      kadus2: "Kepala Dusun II",
+      kadus3: "Kepala Dusun III",
     };
     Object.entries(perangkatMap).forEach(([field, jabatan]) => {
       const nama = villageInfo[field];
-      if (typeof nama === 'string' && nama.trim()) {
+      if (typeof nama === "string" && nama.trim()) {
         perangkatFallback.push({ nama: nama.trim(), jabatan });
       }
     });
@@ -104,7 +107,9 @@ const CreateTidakMampuLetter: React.FC<{
   const handleSignerChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     let selected: { nama: string; jabatan: string } | null = null;
     if (villageInfo?.perangkat?.length) {
-      selected = villageInfo.perangkat.find((p: any) => p.nama === e.target.value);
+      selected = villageInfo.perangkat.find(
+        (p: any) => p.nama === e.target.value
+      );
     } else {
       const found = perangkatFallback.find((p) => p.nama === e.target.value);
       selected = found ? { nama: found.nama, jabatan: found.jabatan } : null;
@@ -260,36 +265,37 @@ const CreateTidakMampuLetter: React.FC<{
     );
     y += 16;
     // TTD
-    const ttdY = y;
     doc.text(
       `Kedungwringin, ${new Date().toLocaleDateString("id-ID", {
         day: "2-digit",
         month: "long",
         year: "numeric",
       })}`,
-      pageWidth - 30,
-      ttdY,
+      pageWidth - 20,
+      y,
       { align: "right" }
     );
     y += 6;
     if (signer && !signer.jabatan.toLowerCase().includes("kepala desa")) {
-      doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 15, y, {
-        align: "right",
+      doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 35, y, {
+        align: "center",
       });
       y += 6;
     }
     doc.text(
-      (signer?.jabatan?.toUpperCase() || "KASI PEMERINTAH"),
-      pageWidth - 27,
+      signer?.jabatan?.toUpperCase() || "KASI PEMERINTAH",
+      pageWidth - 35,
       y,
-      { align: "right" }
+      { align: "center" }
     );
     y += 24;
     doc.text(
-      signer?.nama || villageInfo?.kasipemerintah?.trim() || "(................................)",
+      signer?.nama ||
+        villageInfo?.kasipemerintah?.trim() ||
+        "(................................)",
       pageWidth - 35,
       y,
-      { align: "right" }
+      { align: "center" }
     );
     return doc;
   };
@@ -595,13 +601,22 @@ const CreateTidakMampuLetter: React.FC<{
                 year: "numeric",
               })}
             </div>
-            {signer && !signer.jabatan.toLowerCase().includes('kepala desa') && (
-              <div className="font-bold">An. KEPALA DESA KEDUNGWRINGIN</div>
-            )}
-            <div className="font-bold">{signer?.jabatan ? signer.jabatan.toUpperCase() : (signer?.nama ? '' : '(................................)')}</div>
+            {signer &&
+              !signer.jabatan.toLowerCase().includes("kepala desa") && (
+                <div className="font-bold">An. KEPALA DESA KEDUNGWRINGIN</div>
+              )}
+            <div className="font-bold">
+              {signer?.jabatan
+                ? signer.jabatan.toUpperCase()
+                : signer?.nama
+                ? ""
+                : "(................................)"}
+            </div>
             <div style={{ height: "60px" }}></div>
             <div className="font-bold underline">
-              {signer?.nama || villageInfo?.kasipemerintah?.trim() || '(................................)'}
+              {signer?.nama ||
+                villageInfo?.kasipemerintah?.trim() ||
+                "(................................)"}
             </div>
           </div>
         </div>
