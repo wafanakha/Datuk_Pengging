@@ -49,6 +49,7 @@ const CreateKematianLetter: React.FC = () => {
 
   function generateSuratKematianN6Pdf(form: any) {
     const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
     doc.setFont("helvetica", "normal");
     doc.setFontSize(12);
     // Header
@@ -155,33 +156,41 @@ const CreateKematianLetter: React.FC = () => {
     doc.text(
       "Demikianlah, surat keterangan ini dibuat dengan mengingat sumpah jabatan dan untuk digunakan seperlunya.",
       10,
-      yB + 52
+      (yB += 52)
     );
     // Tanggal, jabatan, tanda tangan
+    yB += 10;
     doc.text(
-      `Kedungwiringin, ${new Date().toLocaleDateString("id-ID", {
+      `Kedungwringin, ${new Date().toLocaleDateString("id-ID", {
         day: "2-digit",
         month: "long",
         year: "numeric",
       })}`,
-      130,
-      yB + 66
+      pageWidth - 20,
+      yB,
+      { align: "right" }
     );
-    let perangkatY = yB + 72;
+    yB += 6;
     if (signer && !signer.jabatan.toLowerCase().includes("kepala desa")) {
-      doc.text("An. KEPALA DESA KEDUNGWRINGIN", 130, perangkatY);
-      perangkatY += 6;
+      doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 35, yB, {
+        align: "center",
+      });
+      yB += 6;
     }
     doc.text(
-      (signer?.jabatan?.toUpperCase() || "(................................)"),
-      130,
-      perangkatY
+      signer?.jabatan?.toUpperCase() || "KASI PEMERINTAH",
+      pageWidth - 35,
+      yB,
+      { align: "center" }
     );
-    perangkatY += 24;
+    yB += 24;
     doc.text(
-      signer?.nama || "(................................)",
-      145,
-      perangkatY
+      signer?.nama ||
+        villageInfo?.kasipemerintah?.trim() ||
+        "(................................)",
+      pageWidth - 35,
+      yB,
+      { align: "center" }
     );
     // Footer
     doc.setFontSize(8);
@@ -247,9 +256,10 @@ const CreateKematianLetter: React.FC = () => {
     });
   }
 
-  const [signer, setSigner] = React.useState<
-    { nama: string; jabatan: string } | null
-  >(null);
+  const [signer, setSigner] = React.useState<{
+    nama: string;
+    jabatan: string;
+  } | null>(null);
 
   React.useEffect(() => {
     if (perangkatFallback.length > 0) {
@@ -587,13 +597,17 @@ const CreateKematianLetter: React.FC = () => {
                 new Date(form.suratDate).toLocaleDateString("id-ID")}
             </div>
             {/* Jika bukan kepala desa, tampilkan An. KEPALA DESA KEDUNGWRINGIN */}
-            {signer && !signer.jabatan.toLowerCase().includes('kepala desa') && (
-              <div className="font-bold">An. KEPALA DESA KEDUNGWRINGIN</div>
-            )}
-            <div className="font-bold">{signer?.jabatan?.toUpperCase() || '(................................)'}</div>
+            {signer &&
+              !signer.jabatan.toLowerCase().includes("kepala desa") && (
+                <div className="font-bold">An. KEPALA DESA KEDUNGWRINGIN</div>
+              )}
+            <div className="font-bold">
+              {signer?.jabatan?.toUpperCase() ||
+                "(................................)"}
+            </div>
             <div style={{ height: "60px" }}></div>
             <div className="font-bold underline">
-              {signer?.nama || '(................................)'}
+              {signer?.nama || "(................................)"}
             </div>
           </div>
         </div>

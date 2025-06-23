@@ -48,8 +48,13 @@ const CreateDomisiliLetter: React.FC<{
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
   const [villageInfo, setVillageInfo] = useState<any>(null);
-  const [signer, setSigner] = useState<{ nama: string; jabatan: string } | null>(null);
-  const [perangkatFallback, setPerangkatFallback] = useState<{ nama: string; jabatan: string }[]>([]);
+  const [signer, setSigner] = useState<{
+    nama: string;
+    jabatan: string;
+  } | null>(null);
+  const [perangkatFallback, setPerangkatFallback] = useState<
+    { nama: string; jabatan: string }[]
+  >([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -69,21 +74,21 @@ const CreateDomisiliLetter: React.FC<{
       // Helper: perangkat fallback dari pengaturan Settings
       const fallback: { nama: string; jabatan: string }[] = [];
       const perangkatMap: Record<string, string> = {
-        leaderName: 'Kepala Desa',
-        sekretaris: 'Sekretaris Desa',
-        kaurUmumNTataUsaha: 'Kaur Umum & Tata Usaha',
-        kaurKeuangan: 'Kaur Keuangan',
-        kaurPerencanaan: 'Kaur Perencanaan',
-        kasipemerintah: 'Kasi Pemerintahan',
-        kasiKesejahteraan: 'Kasi Kesejahteraan',
-        kasiPelayanan: 'Kasi Pelayanan',
-        kadus1: 'Kepala Dusun I',
-        kadus2: 'Kepala Dusun II',
-        kadus3: 'Kepala Dusun III',
+        leaderName: "Kepala Desa",
+        sekretaris: "Sekretaris Desa",
+        kaurUmumNTataUsaha: "Kaur Umum & Tata Usaha",
+        kaurKeuangan: "Kaur Keuangan",
+        kaurPerencanaan: "Kaur Perencanaan",
+        kasipemerintah: "Kasi Pemerintahan",
+        kasiKesejahteraan: "Kasi Kesejahteraan",
+        kasiPelayanan: "Kasi Pelayanan",
+        kadus1: "Kepala Dusun I",
+        kadus2: "Kepala Dusun II",
+        kadus3: "Kepala Dusun III",
       };
       Object.entries(perangkatMap).forEach(([field, jabatan]) => {
         const nama = info[field];
-        if (typeof nama === 'string' && nama.trim()) {
+        if (typeof nama === "string" && nama.trim()) {
           fallback.push({ nama: nama.trim(), jabatan });
         }
       });
@@ -91,7 +96,9 @@ const CreateDomisiliLetter: React.FC<{
 
       if (fallback.length > 0) {
         // Default: Kepala Desa jika ada, jika tidak perangkat pertama
-        const kepalaDesa = fallback.find((p) => p.jabatan.toLowerCase().includes('kepala desa'));
+        const kepalaDesa = fallback.find((p) =>
+          p.jabatan.toLowerCase().includes("kepala desa")
+        );
         setSigner(kepalaDesa || fallback[0]);
       }
     });
@@ -134,6 +141,8 @@ const CreateDomisiliLetter: React.FC<{
 
   const generatePDF = (): jsPDF => {
     const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+
     // Tambahkan logo di kiri atas
     doc.addImage(logo, "PNG", 20, 10, 24, 24);
     doc.setFont("helvetica", "bold");
@@ -222,24 +231,31 @@ const CreateDomisiliLetter: React.FC<{
         month: "long",
         year: "numeric",
       })}`,
-      146,
-      y
+      pageWidth - 20,
+      y,
+      { align: "right" }
     );
-    let perangkatY = y + 5;
+    y += 6;
     if (signer && !signer.jabatan.toLowerCase().includes("kepala desa")) {
-      doc.text("An. KEPALA DESA KEDUNGWRINGIN", 140, perangkatY);
-      perangkatY += 5;
+      doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 35, y, {
+        align: "center",
+      });
+      y += 6;
     }
     doc.text(
-      (signer?.jabatan?.toUpperCase() || "(................................)"),
-      152,
-      perangkatY
+      signer?.jabatan?.toUpperCase() || "KASI PEMERINTAH",
+      pageWidth - 35,
+      y,
+      { align: "center" }
     );
-    perangkatY += 24;
+    y += 24;
     doc.text(
-      signer?.nama || "(................................)",
-      162,
-      perangkatY
+      signer?.nama ||
+        villageInfo?.kasipemerintah?.trim() ||
+        "(................................)",
+      pageWidth - 35,
+      y,
+      { align: "center" }
     );
     return doc;
   };
@@ -317,8 +333,10 @@ const CreateDomisiliLetter: React.FC<{
           <select
             className="input w-full"
             value={signer?.nama || ""}
-            onChange={e => {
-              const found = perangkatFallback.find((p) => p.nama === e.target.value);
+            onChange={(e) => {
+              const found = perangkatFallback.find(
+                (p) => p.nama === e.target.value
+              );
               setSigner(found || null);
             }}
           >
@@ -589,17 +607,22 @@ const CreateDomisiliLetter: React.FC<{
             >
               <div className="compact" style={{ textAlign: "center" }}>
                 <p>
-                  Kedungwringin, {new Date().toLocaleDateString("id-ID", {
+                  Kedungwringin,{" "}
+                  {new Date().toLocaleDateString("id-ID", {
                     day: "2-digit",
                     month: "long",
                     year: "numeric",
                   })}
                 </p>
                 {/* Jika bukan kepala desa, tampilkan An. KEPALA DESA KEDUNGWRINGIN */}
-                {signer && !signer.jabatan.toLowerCase().includes('kepala desa') && (
-                  <p className="font-bold">An. KEPALA DESA KEDUNGWRINGIN</p>
-                )}
-                <p>{signer?.jabatan?.toUpperCase() || '(................................)'}</p>
+                {signer &&
+                  !signer.jabatan.toLowerCase().includes("kepala desa") && (
+                    <p className="font-bold">An. KEPALA DESA KEDUNGWRINGIN</p>
+                  )}
+                <p>
+                  {signer?.jabatan?.toUpperCase() ||
+                    "(................................)"}
+                </p>
               </div>
               <div style={{ marginTop: "auto" }}>
                 <div
@@ -611,7 +634,7 @@ const CreateDomisiliLetter: React.FC<{
                 ></div>
                 <p>
                   <strong>
-                    {signer?.nama || '(................................)'}
+                    {signer?.nama || "(................................)"}
                   </strong>
                 </p>
               </div>
