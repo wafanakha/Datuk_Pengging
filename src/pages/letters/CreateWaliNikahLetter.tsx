@@ -9,6 +9,7 @@ import { LetterHistory } from "../../types";
 import { saveLetterHistory } from "../../services/residentService";
 import { residentService } from "../../database/residentService";
 import logo from "../../../logo-bms.png";
+import { AlignCenter } from "lucide-react";
 
 interface WaliNikahFormData {
   waliNama: string;
@@ -307,8 +308,9 @@ const CreateWaliNikahLetter: React.FC<{
       kepalaDesa ||
         villageInfo?.leaderName ||
         "(................................)",
-      140,
-      y
+      160,
+      y,
+      { align: "center" }
     );
     return doc;
   };

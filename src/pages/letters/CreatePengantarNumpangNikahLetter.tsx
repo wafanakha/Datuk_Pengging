@@ -234,8 +234,9 @@ const CreatePengantarNumpangNikahLetter: React.FC<{
     doc.text("Pemohon", 35, y + 6);
     doc.text(
       `(${villageInfo?.leaderName || "................................"})`,
-      140,
-      y + 35
+      165,
+      y + 35,
+      { align: "center" }
     );
     return doc;
   };
@@ -617,10 +618,7 @@ const CreatePengantarNumpangNikahLetter: React.FC<{
                   {villageInfo?.name || "Desa"},{" "}
                   {new Date().toLocaleDateString("id-ID")}
                 </p>
-                <p>
-                  An. {villageInfo?.leaderTitle || "KEPALA DESA"}{" "}
-                  {villageInfo?.name || ""}
-                </p>
+                <p>Kepala Desa {villageInfo?.name || ""}</p>
                 <p>KASI PEMERINTAH</p>
               </div>
               <div style={{ marginTop: "auto" }}>
