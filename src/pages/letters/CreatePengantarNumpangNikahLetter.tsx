@@ -230,15 +230,8 @@ const CreatePengantarNumpangNikahLetter: React.FC<{
     );
     y += 7;
     doc.text(`${form.nama}`, 35, y + 35);
-    doc.text(
-      `An. ${villageInfo?.leaderTitle || "KEPALA DESA"} ${
-        villageInfo?.name || ""
-      }`,
-      140,
-      y
-    );
+    doc.text(`Kepala Desa ${villageInfo?.name || ""}`, 140, y);
     doc.text("Pemohon", 35, y + 6);
-    doc.text("KASI PEMERINTAH", 140, y + 6);
     doc.text(
       `(${villageInfo?.leaderName || "................................"})`,
       140,

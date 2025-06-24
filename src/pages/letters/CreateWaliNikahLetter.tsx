@@ -392,17 +392,6 @@ const CreateWaliNikahLetter: React.FC<{
           placeholder="Nomor Surat"
           className="input"
         />
-        <input
-          name="kepalaDesa"
-          value={
-            kepalaDesa === "" && villageInfo?.leaderName
-              ? villageInfo.leaderName
-              : kepalaDesa
-          }
-          onChange={(e) => setKepalaDesa(e.target.value)}
-          placeholder="Nama Kepala Desa"
-          className="input"
-        />
       </form>
       <div className="flex gap-2 mb-6">
         <Button variant="primary" onClick={handleExportPDF}>
