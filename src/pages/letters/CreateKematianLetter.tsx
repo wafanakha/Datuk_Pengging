@@ -4,8 +4,10 @@ import Input from "../../components/ui/Input";
 import Modal from "../../components/ui/Modal";
 import jsPDF from "jspdf";
 import { villageService } from "../../database/villageService";
+import { residentService } from "../../database/residentService";
 import { LetterHistory } from "../../types";
 import { saveLetterHistory } from "../../services/residentService";
+
 const initialForm = {
   deceasedName: "",
   deceasedAlias: "",
@@ -39,12 +41,84 @@ const CreateKematianLetter: React.FC = () => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [villageInfo, setVillageInfo] = useState<any>(null);
 
+  // Search states for deceased
+  const [deceasedSearch, setDeceasedSearch] = useState("");
+  const [deceasedSearchResults, setDeceasedSearchResults] = useState<any[]>([]);
+  const [deceasedSearching, setDeceasedSearching] = useState(false);
+
+  // Search states for spouse
+  const [spouseSearch, setSpouseSearch] = useState("");
+  const [spouseSearchResults, setSpouseSearchResults] = useState<any[]>([]);
+  const [spouseSearching, setSpouseSearching] = useState(false);
+
   React.useEffect(() => {
     villageService.getVillageInfo().then(setVillageInfo);
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  // Handle deceased search
+  const handleDeceasedSearchChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setDeceasedSearch(e.target.value);
+    if (e.target.value.length < 2) {
+      setDeceasedSearchResults([]);
+      return;
+    }
+    setDeceasedSearching(true);
+    const results = await residentService.searchResidents(e.target.value);
+    setDeceasedSearchResults(results);
+    setDeceasedSearching(false);
+  };
+
+  const handleSelectDeceasedResident = (resident: any) => {
+    setForm({
+      ...form,
+      deceasedName: resident.name,
+      deceasedNik: resident.nik,
+      deceasedBirthPlace: resident.birthPlace,
+      deceasedBirthDate: resident.birthDate,
+      deceasedNationality: resident.nationality || "Indonesia",
+      deceasedReligion: resident.religion,
+      deceasedOccupation: resident.occupation,
+      deceasedAddress: resident.address,
+    });
+    setDeceasedSearch(resident.nik + " - " + resident.name);
+    setDeceasedSearchResults([]);
+  };
+
+  // Handle spouse search
+  const handleSpouseSearchChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setSpouseSearch(e.target.value);
+    if (e.target.value.length < 2) {
+      setSpouseSearchResults([]);
+      return;
+    }
+    setSpouseSearching(true);
+    const results = await residentService.searchResidents(e.target.value);
+    setSpouseSearchResults(results);
+    setSpouseSearching(false);
+  };
+
+  const handleSelectSpouseResident = (resident: any) => {
+    setForm({
+      ...form,
+      spouseName: resident.name,
+      spouseNik: resident.nik,
+      spouseBirthPlace: resident.birthPlace,
+      spouseBirthDate: resident.birthDate,
+      spouseNationality: resident.nationality || "Indonesia",
+      spouseReligion: resident.religion,
+      spouseOccupation: resident.occupation,
+      spouseAddress: resident.address,
+    });
+    setSpouseSearch(resident.nik + " - " + resident.name);
+    setSpouseSearchResults([]);
   };
 
   function generateSuratKematianN6Pdf(form: any) {
@@ -82,6 +156,15 @@ const CreateKematianLetter: React.FC = () => {
     let y = 62;
     let labelX = 20;
     let valueX = 70;
+
+    doc.text("1. Nama lengkap dan alias", labelX, y);
+    doc.text(
+      `: ${form.deceasedName}${
+        form.deceasedAlias ? " / " + form.deceasedAlias : ""
+      }`,
+      valueX,
+      y
+    );
 
     doc.text("2. Bin/Binti", labelX, y + 6);
     doc.text(`: ${form.deceasedBinBinti}`, valueX, y + 6);
@@ -208,7 +291,7 @@ const CreateKematianLetter: React.FC = () => {
 
     const historyEntry: LetterHistory = {
       name: form.deceasedName,
-      letter: "ahli-waris",
+      letter: "kematian",
       date: new Date().toISOString(),
     };
 
@@ -223,7 +306,7 @@ const CreateKematianLetter: React.FC = () => {
 
     const historyEntry: LetterHistory = {
       name: form.deceasedName,
-      letter: "ahli-waris",
+      letter: "kematian",
       date: new Date().toISOString(),
     };
 
@@ -276,10 +359,42 @@ const CreateKematianLetter: React.FC = () => {
       <h2 className="text-2xl font-bold">
         Surat Keterangan Kematian (Model N6)
       </h2>
+
       <form className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-6 rounded shadow mb-4">
         <div className="md:col-span-2 font-semibold mb-2">
           A. Data Almarhum/Almarhumah
         </div>
+
+        {/* Search field for deceased */}
+        <div className="md:col-span-2 mb-4">
+          <label className="block font-semibold mb-1">
+            Cari Data Almarhum/Almarhumah
+          </label>
+          <input
+            type="text"
+            className="input w-full"
+            placeholder="Cari NIK atau Nama Almarhum/Almarhumah..."
+            value={deceasedSearch}
+            onChange={handleDeceasedSearchChange}
+          />
+          {deceasedSearching && (
+            <div className="text-sm text-gray-500">Mencari...</div>
+          )}
+          {deceasedSearchResults.length > 0 && (
+            <div className="bg-white border rounded shadow mt-1 max-h-48 overflow-auto z-10 relative">
+              {deceasedSearchResults.map((r) => (
+                <div
+                  key={r.id}
+                  className="px-3 py-2 hover:bg-teal-100 cursor-pointer"
+                  onClick={() => handleSelectDeceasedResident(r)}
+                >
+                  {r.nik} - {r.name}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <Input
           label="Nama Lengkap"
           name="deceasedName"
@@ -355,9 +470,39 @@ const CreateKematianLetter: React.FC = () => {
           value={form.deathPlace}
           onChange={handleChange}
         />
+
         <div className="md:col-span-2 font-semibold mt-4 mb-2">
           B. Data Pasangan
         </div>
+
+        {/* Search field for spouse */}
+        <div className="md:col-span-2 mb-4">
+          <label className="block font-semibold mb-1">Cari Data Pasangan</label>
+          <input
+            type="text"
+            className="input w-full"
+            placeholder="Cari NIK atau Nama Pasangan..."
+            value={spouseSearch}
+            onChange={handleSpouseSearchChange}
+          />
+          {spouseSearching && (
+            <div className="text-sm text-gray-500">Mencari...</div>
+          )}
+          {spouseSearchResults.length > 0 && (
+            <div className="bg-white border rounded shadow mt-1 max-h-48 overflow-auto z-10 relative">
+              {spouseSearchResults.map((r) => (
+                <div
+                  key={r.id}
+                  className="px-3 py-2 hover:bg-teal-100 cursor-pointer"
+                  onClick={() => handleSelectSpouseResident(r)}
+                >
+                  {r.nik} - {r.name}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <Input
           label="Nama Lengkap"
           name="spouseName"
@@ -419,6 +564,7 @@ const CreateKematianLetter: React.FC = () => {
           value={form.spouseAddress}
           onChange={handleChange}
         />
+
         <div className="md:col-span-2 font-semibold mt-4 mb-2">
           C. Data Surat
         </div>
@@ -464,6 +610,7 @@ const CreateKematianLetter: React.FC = () => {
           </Button>
         </div>
       </form>
+
       <div className="bg-white p-6 border shadow max-w-[800px] mx-auto mb-8">
         <div className="text-center font-bold text-lg mb-2">
           SURAT KETERANGAN KEMATIAN
@@ -616,6 +763,7 @@ const CreateKematianLetter: React.FC = () => {
           473 Tahun 2020
         </div>
       </div>
+
       <Modal
         isOpen={previewOpen}
         onClose={() => setPreviewOpen(false)}
