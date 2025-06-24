@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import logo from "../../../logo-bms.png";
 import { residentService } from "../../services/residentService";
+import { villageService } from "../../database/villageService";
 import { LetterHistory } from "../../types";
 import { saveLetterHistory } from "../../services/residentService";
+
 interface PewarisData {
   nama: string;
   umur: string;
@@ -47,7 +49,52 @@ const CreateAhliWarisLetter: React.FC = () => {
   const [pewaris, setPewaris] = useState<PewarisData>(initialPewaris);
   const [ahliWaris, setAhliWaris] = useState<AhliWarisData[]>([]);
   const [letterNumber, setLetterNumber] = useState("");
+  const [villageInfo, setVillageInfo] = useState<any>(null);
+  const [signer, setSigner] = useState<{
+    nama: string;
+    jabatan: string;
+  } | null>(null);
+  const [perangkatFallback, setPerangkatFallback] = useState<
+    { nama: string; jabatan: string }[]
+  >([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    villageService.getVillageInfo().then((info) => {
+      setVillageInfo(info);
+
+      // Helper: perangkat fallback dari pengaturan Settings
+      const fallback: { nama: string; jabatan: string }[] = [];
+      const perangkatMap: Record<string, string> = {
+        leaderName: "Kepala Desa",
+        sekretaris: "Sekretaris Desa",
+        kaurUmumNTataUsaha: "Kaur Umum & Tata Usaha",
+        kaurKeuangan: "Kaur Keuangan",
+        kaurPerencanaan: "Kaur Perencanaan",
+        kasipemerintah: "Kasi Pemerintahan",
+        kasiKesejahteraan: "Kasi Kesejahteraan",
+        kasiPelayanan: "Kasi Pelayanan",
+        kadus1: "Kepala Dusun I",
+        kadus2: "Kepala Dusun II",
+        kadus3: "Kepala Dusun III",
+      };
+      Object.entries(perangkatMap).forEach(([field, jabatan]) => {
+        const nama = info[field];
+        if (typeof nama === "string" && nama.trim()) {
+          fallback.push({ nama: nama.trim(), jabatan });
+        }
+      });
+      setPerangkatFallback(fallback);
+
+      if (fallback.length > 0) {
+        // Default: Kepala Desa jika ada, jika tidak perangkat pertama
+        const kepalaDesa = fallback.find((p) =>
+          p.jabatan.toLowerCase().includes("kepala desa")
+        );
+        setSigner(kepalaDesa || fallback[0]);
+      }
+    });
+  }, []);
 
   // Cari Pewaris berdasarkan NIK/Nama
   const handlePewarisSearch = async () => {
@@ -105,7 +152,11 @@ const CreateAhliWarisLetter: React.FC = () => {
   };
 
   // Edit field ahli waris manual
-  const handleEditAhliWaris = (idx: number, field: keyof AhliWarisData, value: string) => {
+  const handleEditAhliWaris = (
+    idx: number,
+    field: keyof AhliWarisData,
+    value: string
+  ) => {
     const updated = [...ahliWaris];
     updated[idx][field] = value;
     setAhliWaris(updated);
@@ -118,6 +169,7 @@ const CreateAhliWarisLetter: React.FC = () => {
 
   const generatePDF = (): jsPDF => {
     const doc = new jsPDF("p", "mm", "a4");
+    const pageWidth = doc.internal.pageSize.getWidth();
     // Logo
     doc.addImage(logo, "PNG", 20, 10, 24, 24);
     // Header
@@ -262,14 +314,32 @@ const CreateAhliWarisLetter: React.FC = () => {
         month: "long",
         year: "numeric",
       })}`,
-      135,
-      y
+      pageWidth - 20,
+      y,
+      { align: "right" }
     );
-    y += 7;
-    doc.text("Kepala Desa", 145, y);
-    y += 20;
-    doc.setFont("Times", "Bold");
-    doc.text("PARMINAH", 145, y);
+    y += 6;
+    if (signer && !signer.jabatan.toLowerCase().includes("kepala desa")) {
+      doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 35, y, {
+        align: "center",
+      });
+      y += 6;
+    }
+    doc.text(
+      signer?.jabatan?.toUpperCase() || "KASI PEMERINTAH",
+      pageWidth - 35,
+      y,
+      { align: "center" }
+    );
+    y += 24;
+    doc.text(
+      signer?.nama ||
+        villageInfo?.kasipemerintah?.trim() ||
+        "(................................)",
+      pageWidth - 35,
+      y,
+      { align: "center" }
+    );
     return doc;
   };
   // Export PDF
@@ -338,10 +408,18 @@ const CreateAhliWarisLetter: React.FC = () => {
             className="input w-full"
             placeholder="Cari NIK/Nama Pewaris..."
             value={pewarisSearch}
-            onChange={e => setPewarisSearch(e.target.value)}
+            onChange={(e) => setPewarisSearch(e.target.value)}
           />
-          <Button variant="primary" onClick={handlePewarisSearch} className="mt-2">Cari Pewaris</Button>
-          {searchingPewaris && <div className="text-sm text-gray-500">Mencari...</div>}
+          <Button
+            variant="primary"
+            onClick={handlePewarisSearch}
+            className="mt-2"
+          >
+            Cari Pewaris
+          </Button>
+          {searchingPewaris && (
+            <div className="text-sm text-gray-500">Mencari...</div>
+          )}
           {pewarisSearchResults.length > 0 && (
             <div className="bg-white border rounded shadow mt-1 max-h-48 overflow-auto z-10 relative">
               {pewarisSearchResults.map((res) => (
@@ -356,6 +434,26 @@ const CreateAhliWarisLetter: React.FC = () => {
             </div>
           )}
         </div>
+        {/* Pilih Penandatangan */}
+        <div className="md:col-span-2 mb-2">
+          <label className="block font-semibold mb-1">Tanda Tangan Oleh</label>
+          <select
+            className="input w-full"
+            value={signer?.nama || ""}
+            onChange={(e) => {
+              const found = perangkatFallback.find(
+                (p) => p.nama === e.target.value
+              );
+              setSigner(found || null);
+            }}
+          >
+            {perangkatFallback.map((p) => (
+              <option key={p.nama} value={p.nama}>
+                {p.jabatan} - {p.nama}
+              </option>
+            ))}
+          </select>
+        </div>
         <input
           type="text"
           className="input w-full mt-2"
@@ -365,44 +463,173 @@ const CreateAhliWarisLetter: React.FC = () => {
         />
         {/* Data Pewaris */}
         <div className="mt-4">
-          <div className="font-semibold mb-2">Data Pewaris (yang meninggal):</div>
-          <input type="text" className="input w-full mt-2" placeholder="Nama" value={pewaris.nama} onChange={e => setPewaris({ ...pewaris, nama: e.target.value })} />
-          <input type="text" className="input w-full mt-2" placeholder="Umur" value={pewaris.umur} onChange={e => setPewaris({ ...pewaris, umur: e.target.value })} />
-          <input type="text" className="input w-full mt-2" placeholder="Alamat" value={pewaris.alamat} onChange={e => setPewaris({ ...pewaris, alamat: e.target.value })} />
-          <input type="text" className="input w-full mt-2" placeholder="Nomor Akta Kematian" value={pewaris.aktaKematian} onChange={e => setPewaris({ ...pewaris, aktaKematian: e.target.value })} />
+          <div className="font-semibold mb-2">
+            Data Pewaris (yang meninggal):
+          </div>
+          <input
+            type="text"
+            className="input w-full mt-2"
+            placeholder="Nama"
+            value={pewaris.nama}
+            onChange={(e) => setPewaris({ ...pewaris, nama: e.target.value })}
+          />
+          <input
+            type="text"
+            className="input w-full mt-2"
+            placeholder="Umur"
+            value={pewaris.umur}
+            onChange={(e) => setPewaris({ ...pewaris, umur: e.target.value })}
+          />
+          <input
+            type="text"
+            className="input w-full mt-2"
+            placeholder="Alamat"
+            value={pewaris.alamat}
+            onChange={(e) => setPewaris({ ...pewaris, alamat: e.target.value })}
+          />
+          <input
+            type="text"
+            className="input w-full mt-2"
+            placeholder="Nomor Akta Kematian"
+            value={pewaris.aktaKematian}
+            onChange={(e) =>
+              setPewaris({ ...pewaris, aktaKematian: e.target.value })
+            }
+          />
           <div className="flex gap-2">
             <label className="text-xs text-gray-600 mb-1">Tanggal Wafat</label>
-            <input type="date" className="input w-full mt-2" placeholder="Tanggal Wafat" value={pewaris.tanggalWafat} onChange={e => {
-              const tanggal = e.target.value;
-              setPewaris({ ...pewaris, tanggalWafat: tanggal, hariWafat: getHariFromTanggal(tanggal) });
-            }} />
-            <label className="text-xs text-gray-600 mb-1">Tanggal Akta Kematian</label>
-            <input type="date" className="input w-full mt-2" placeholder="Tanggal Akta Kematian" value={pewaris.tanggalAkta} onChange={e => setPewaris({ ...pewaris, tanggalAkta: e.target.value })} />
+            <input
+              type="date"
+              className="input w-full mt-2"
+              placeholder="Tanggal Wafat"
+              value={pewaris.tanggalWafat}
+              onChange={(e) => {
+                const tanggal = e.target.value;
+                setPewaris({
+                  ...pewaris,
+                  tanggalWafat: tanggal,
+                  hariWafat: getHariFromTanggal(tanggal),
+                });
+              }}
+            />
+            <label className="text-xs text-gray-600 mb-1">
+              Tanggal Akta Kematian
+            </label>
+            <input
+              type="date"
+              className="input w-full mt-2"
+              placeholder="Tanggal Akta Kematian"
+              value={pewaris.tanggalAkta}
+              onChange={(e) =>
+                setPewaris({ ...pewaris, tanggalAkta: e.target.value })
+              }
+            />
           </div>
-          <input type="text" className="input w-full mt-2" placeholder="Hari Wafat" value={pewaris.hariWafat} onChange={e => setPewaris({ ...pewaris, hariWafat: e.target.value })} />
-          <input type="text" className="input w-full mt-2" placeholder="Tempat Wafat" value={pewaris.tempatWafat} onChange={e => setPewaris({ ...pewaris, tempatWafat: e.target.value })} />
+          <input
+            type="text"
+            className="input w-full mt-2"
+            placeholder="Hari Wafat"
+            value={pewaris.hariWafat}
+            onChange={(e) =>
+              setPewaris({ ...pewaris, hariWafat: e.target.value })
+            }
+          />
+          <input
+            type="text"
+            className="input w-full mt-2"
+            placeholder="Tempat Wafat"
+            value={pewaris.tempatWafat}
+            onChange={(e) =>
+              setPewaris({ ...pewaris, tempatWafat: e.target.value })
+            }
+          />
         </div>
         {/* Daftar Ahli Waris */}
         <div className="mt-6">
           <div className="font-semibold mb-2">Daftar Ahli Waris:</div>
           {ahliWaris.map((a, i) => (
             <div key={i} className="flex gap-2 mb-2 items-center">
-              <input type="text" className="input" placeholder="Nama" value={a.nama} onChange={e => handleEditAhliWaris(i, 'nama', e.target.value)} />
-              <input type="text" className="input" placeholder="Tempat Lahir" value={a.tempatLahir} onChange={e => handleEditAhliWaris(i, 'tempatLahir', e.target.value)} />
-              <input type="date" className="input" placeholder="Tanggal Lahir" value={a.tanggalLahir} onChange={e => handleEditAhliWaris(i, 'tanggalLahir', e.target.value)} />
-              <input type="text" className="input" placeholder="NIK" value={a.nik} onChange={e => handleEditAhliWaris(i, 'nik', e.target.value)} />
-              <input type="text" className="input" placeholder="Alamat" value={a.alamat} onChange={e => handleEditAhliWaris(i, 'alamat', e.target.value)} />
-              <input type="text" className="input" placeholder="Hubungan" value={a.hubungan} onChange={e => handleEditAhliWaris(i, 'hubungan', e.target.value)} />
-              <Button variant="danger" onClick={() => handleRemoveAhliWaris(i)}>-</Button>
+              <input
+                type="text"
+                className="input"
+                placeholder="Nama"
+                value={a.nama}
+                onChange={(e) => handleEditAhliWaris(i, "nama", e.target.value)}
+              />
+              <input
+                type="text"
+                className="input"
+                placeholder="Tempat Lahir"
+                value={a.tempatLahir}
+                onChange={(e) =>
+                  handleEditAhliWaris(i, "tempatLahir", e.target.value)
+                }
+              />
+              <input
+                type="date"
+                className="input"
+                placeholder="Tanggal Lahir"
+                value={a.tanggalLahir}
+                onChange={(e) =>
+                  handleEditAhliWaris(i, "tanggalLahir", e.target.value)
+                }
+              />
+              <input
+                type="text"
+                className="input"
+                placeholder="NIK"
+                value={a.nik}
+                onChange={(e) => handleEditAhliWaris(i, "nik", e.target.value)}
+              />
+              <input
+                type="text"
+                className="input"
+                placeholder="Alamat"
+                value={a.alamat}
+                onChange={(e) =>
+                  handleEditAhliWaris(i, "alamat", e.target.value)
+                }
+              />
+              <input
+                type="text"
+                className="input"
+                placeholder="Hubungan"
+                value={a.hubungan}
+                onChange={(e) =>
+                  handleEditAhliWaris(i, "hubungan", e.target.value)
+                }
+              />
+              <Button variant="danger" onClick={() => handleRemoveAhliWaris(i)}>
+                -
+              </Button>
             </div>
           ))}
           <div className="flex gap-2 mt-2">
-            <input type="text" className="input" placeholder="Cari NIK/Nama untuk tambah ahli waris (opsional)" id="addAhliWarisInput" />
-            <Button variant="primary" onClick={async () => {
-              const val = (document.getElementById('addAhliWarisInput') as HTMLInputElement)?.value;
-              await handleAddAhliWaris(val);
-              if (document.getElementById('addAhliWarisInput')) (document.getElementById('addAhliWarisInput') as HTMLInputElement).value = '';
-            }}>+</Button>
+            <input
+              type="text"
+              className="input"
+              placeholder="Cari NIK/Nama untuk tambah ahli waris (opsional)"
+              id="addAhliWarisInput"
+            />
+            <Button
+              variant="primary"
+              onClick={async () => {
+                const val = (
+                  document.getElementById(
+                    "addAhliWarisInput"
+                  ) as HTMLInputElement
+                )?.value;
+                await handleAddAhliWaris(val);
+                if (document.getElementById("addAhliWarisInput"))
+                  (
+                    document.getElementById(
+                      "addAhliWarisInput"
+                    ) as HTMLInputElement
+                  ).value = "";
+              }}
+            >
+              +
+            </Button>
           </div>
         </div>
       </div>
