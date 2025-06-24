@@ -7,6 +7,7 @@ import { letterService } from "../../database/letterService";
 import { villageService } from "../../database/villageService";
 import { LetterHistory } from "../../types";
 import { saveLetterHistory } from "../../services/residentService";
+import { residentService } from "../../database/residentService";
 import logo from "../../../logo-bms.png";
 
 interface WaliNikahFormData {
@@ -16,6 +17,7 @@ interface WaliNikahFormData {
   waliPekerjaan: string;
   waliAlamat: string;
   perempuanNama: string;
+  perempuanJenisKelamin: string;
   perempuanTempatTanggalLahir: string;
   perempuanAgama: string;
   perempuanPekerjaan: string;
@@ -30,6 +32,7 @@ const initialForm: WaliNikahFormData = {
   waliPekerjaan: "",
   waliAlamat: "",
   perempuanNama: "",
+  perempuanJenisKelamin: "Perempuan", // Default to Perempuan
   perempuanTempatTanggalLahir: "",
   perempuanAgama: "",
   perempuanPekerjaan: "",
@@ -61,6 +64,8 @@ const hubunganOptions = [
   "Anak laki-laki dari paman kakek seayah",
 ];
 
+const jenisKelaminOptions = ["Laki-laki", "Perempuan"];
+
 const CreateWaliNikahLetter: React.FC<{
   editData?: Letter;
   isEditMode?: boolean;
@@ -69,6 +74,14 @@ const CreateWaliNikahLetter: React.FC<{
   const [letterNumber, setLetterNumber] = useState("");
   const [kepalaDesa, setKepalaDesa] = useState("");
   const [villageInfo, setVillageInfo] = useState<any>(null);
+  const [search, setSearch] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [searchPerempuan, setSearchPerempuan] = useState("");
+  const [searchResultsPerempuan, setSearchResultsPerempuan] = useState<any[]>(
+    []
+  );
+  const [searchingPerempuan, setSearchingPerempuan] = useState(false);
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -91,6 +104,62 @@ const CreateWaliNikahLetter: React.FC<{
     >
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  // Search for Wali
+  const handleSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    if (e.target.value.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    setSearching(true);
+    const results = await residentService.searchResidents(e.target.value);
+    setSearchResults(results);
+    setSearching(false);
+  };
+
+  const handleSelectResident = (resident: any) => {
+    setForm({
+      ...form,
+      waliNama: resident.name,
+      waliTempatTanggalLahir: `${resident.birthPlace}, ${resident.birthDate}`,
+      waliAgama: resident.religion,
+      waliPekerjaan: resident.occupation,
+      waliAlamat: resident.address,
+    });
+    setSearch(resident.nik + " - " + resident.name);
+    setSearchResults([]);
+  };
+
+  // Search for Perempuan
+  const handleSearchPerempuanChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setSearchPerempuan(e.target.value);
+    if (e.target.value.length < 2) {
+      setSearchResultsPerempuan([]);
+      return;
+    }
+    setSearchingPerempuan(true);
+    const results = await residentService.searchResidents(e.target.value);
+    setSearchResultsPerempuan(results);
+    setSearchingPerempuan(false);
+  };
+
+  const handleSelectPerempuan = (resident: any) => {
+    setForm({
+      ...form,
+      perempuanNama: resident.name,
+      perempuanTempatTanggalLahir: `${resident.birthPlace}, ${resident.birthDate}`,
+      perempuanAgama: resident.religion,
+      perempuanPekerjaan: resident.occupation,
+      perempuanAlamat: resident.address,
+      perempuanJenisKelamin:
+        resident.gender === "male" ? "Laki-laki" : "Perempuan",
+    });
+    setSearchPerempuan(resident.nik + " - " + resident.name);
+    setSearchResultsPerempuan([]);
   };
 
   const generatePDF = (): jsPDF => {
@@ -171,7 +240,11 @@ const CreateWaliNikahLetter: React.FC<{
     doc.text(":", 85, y);
     doc.text(form.waliAlamat || "-", 90, y);
     y += 7;
-    doc.text("Adalah sebagai WALI NIKAH dari seorang perempuan :", 20, y);
+    doc.text(
+      `Adalah sebagai WALI NIKAH dari seorang ${form.perempuanJenisKelamin.toLowerCase()} :`,
+      20,
+      y
+    );
     y += 7;
     doc.text("N a m a", 30, y);
     doc.text(":", 85, y);
@@ -193,7 +266,11 @@ const CreateWaliNikahLetter: React.FC<{
     doc.text(":", 85, y);
     doc.text(form.perempuanAlamat || "-", 90, y);
     y += 7;
-    doc.text("Hubungan wali/status terhadap perempuan tsb :", 20, y);
+    doc.text(
+      `Hubungan wali/status terhadap ${form.perempuanJenisKelamin.toLowerCase()} tsb :`,
+      20,
+      y
+    );
     y += 7;
     hubunganOptions.forEach((opt, idx) => {
       doc.text(
@@ -241,7 +318,7 @@ const CreateWaliNikahLetter: React.FC<{
     doc.save("surat-wali-nikah.pdf");
     const historyEntry: LetterHistory = {
       name: form.waliNama,
-      letter: "wali-nikah", // Since this is the usaha letter component
+      letter: "wali-nikah",
       date: new Date().toISOString(),
     };
 
@@ -260,7 +337,7 @@ const CreateWaliNikahLetter: React.FC<{
 
     const historyEntry: LetterHistory = {
       name: form.waliNama,
-      letter: "wali-nikah", // Since this is the usaha letter component
+      letter: "wali-nikah",
       date: new Date().toISOString(),
     };
 
@@ -301,6 +378,32 @@ const CreateWaliNikahLetter: React.FC<{
       <h1 className="text-2xl font-bold mb-4 text-center text-teal-800">
         Surat Keterangan Wali Nikah
       </h1>
+
+      {/* Search for Wali */}
+      <div className="mb-4">
+        <input
+          type="text"
+          className="input w-full"
+          placeholder="Cari NIK atau Nama Wali..."
+          value={search}
+          onChange={handleSearchChange}
+        />
+        {searching && <div className="text-sm text-gray-500">Mencari...</div>}
+        {searchResults.length > 0 && (
+          <div className="bg-white border rounded shadow mt-1 max-h-48 overflow-auto z-10 relative">
+            {searchResults.map((r) => (
+              <div
+                key={r.id}
+                className="px-3 py-2 hover:bg-teal-100 cursor-pointer"
+                onClick={() => handleSelectResident(r)}
+              >
+                {r.nik} - {r.name}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <form className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         <input
           name="waliNama"
@@ -337,6 +440,34 @@ const CreateWaliNikahLetter: React.FC<{
           placeholder="Alamat Wali"
           className="input"
         />
+
+        {/* Search for Perempuan */}
+        <div className="md:col-span-2">
+          <input
+            type="text"
+            className="input w-full"
+            placeholder="Cari NIK atau Nama Perempuan..."
+            value={searchPerempuan}
+            onChange={handleSearchPerempuanChange}
+          />
+          {searchingPerempuan && (
+            <div className="text-sm text-gray-500">Mencari...</div>
+          )}
+          {searchResultsPerempuan.length > 0 && (
+            <div className="bg-white border rounded shadow mt-1 max-h-48 overflow-auto z-10 relative">
+              {searchResultsPerempuan.map((r) => (
+                <div
+                  key={r.id}
+                  className="px-3 py-2 hover:bg-teal-100 cursor-pointer"
+                  onClick={() => handleSelectPerempuan(r)}
+                >
+                  {r.nik} - {r.name}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <input
           name="perempuanNama"
           value={form.perempuanNama}
@@ -344,6 +475,18 @@ const CreateWaliNikahLetter: React.FC<{
           placeholder="Nama Perempuan"
           className="input"
         />
+        <select
+          name="perempuanJenisKelamin"
+          value={form.perempuanJenisKelamin}
+          onChange={handleChange}
+          className="input"
+        >
+          {jenisKelaminOptions.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
+          ))}
+        </select>
         <input
           name="perempuanTempatTanggalLahir"
           value={form.perempuanTempatTanggalLahir}
@@ -466,7 +609,8 @@ const CreateWaliNikahLetter: React.FC<{
               </tbody>
             </table>
             <p style={{ marginTop: 10 }}>
-              Adalah sebagai WALI NIKAH dari seorang perempuan :
+              Adalah sebagai WALI NIKAH dari seorang{" "}
+              {form.perempuanJenisKelamin.toLowerCase()} :
             </p>
             <table style={{ marginLeft: 20 }}>
               <tbody>
@@ -498,7 +642,7 @@ const CreateWaliNikahLetter: React.FC<{
               </tbody>
             </table>
             <p style={{ marginTop: 10 }}>
-              Hubungan wali/status terhadap perempuan tsb :
+              Hubungan wali/status terhadap {form.perempuanJenisKelamin} tsb :
             </p>
             <ol style={{ marginLeft: 30 }}>
               {hubunganOptions.map((opt, idx) => (
