@@ -98,7 +98,7 @@ const generatePDF = (
   y += 30;
   doc.text(resident.name, pageWidth - 60, y, { align: "right" });
   y += 10;
-  doc.text("Mengetahui", pageWidth / 2 - 20, y, { align: "left" });
+  doc.text("Mengetahui", pageWidth / 2 - 15, y, { align: "center" });
   y += 7;
   doc.text(`Kepala Desa ${village.name}`, pageWidth / 2 - 40, y, {
     align: "left",
