@@ -60,8 +60,7 @@ function generatePersetujuanCalonPengantinN4(form: any) {
   doc.setFont("helvetica", "bold");
   doc.text("B. Calon Istri", 10, y + 50);
   doc.setFont("helvetica", "normal");
-  doc.text("Alamat", 15, y + 56);
-  doc.text(`: ${form.istri.alamat}`, 80, y + 56);
+
   let yI = y + 62;
   doc.text("1. Nama", 14, yI);
   doc.text(`: ${form.istri.name}`, 80, yI);
@@ -211,14 +210,24 @@ const CreatePersetujuanCalonPengantinLetter: React.FC = () => {
       <form className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-6 rounded shadow mb-4">
         {/* Cari & edit suami */}
         <div className="md:col-span-2">
-          <label className="block font-semibold mb-1">Cari NIK/Nama Calon Suami</label>
+          <label className="block font-semibold mb-1">
+            Cari NIK/Nama Calon Suami
+          </label>
           <div className="flex gap-2">
             <Input
               value={search.suami}
-              onChange={(e) => setSearch((s) => ({ ...s, suami: e.target.value }))}
+              onChange={(e) =>
+                setSearch((s) => ({ ...s, suami: e.target.value }))
+              }
               placeholder="Ketik NIK atau nama..."
             />
-            <Button type="button" variant="secondary" onClick={() => handleSearch("suami")}>Cari</Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => handleSearch("suami")}
+            >
+              Cari
+            </Button>
           </div>
           {results.suami.length > 0 && (
             <div className="bg-white border rounded shadow mt-1 max-h-48 overflow-auto z-10 relative">
@@ -234,27 +243,105 @@ const CreatePersetujuanCalonPengantinLetter: React.FC = () => {
             </div>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
-            <Input label="Nama Calon Suami" value={form.suami.name} onChange={e => handlePersonFieldChange("suami", "name", e.target.value)} required />
-            <Input label="Bin Calon Suami" value={form.suami.binOrBinti} onChange={e => handlePersonFieldChange("suami", "binOrBinti", e.target.value)} required />
-            <Input label="NIK Calon Suami" value={form.suami.nik} onChange={e => handlePersonFieldChange("suami", "nik", e.target.value)} required />
-            <Input label="Tempat Lahir Suami" value={form.suami.birthPlace} onChange={e => handlePersonFieldChange("suami", "birthPlace", e.target.value)} required />
-            <Input label="Tanggal Lahir Suami" type="date" value={form.suami.birthDate} onChange={e => handlePersonFieldChange("suami", "birthDate", e.target.value)} required />
-            <Input label="Kewarganegaraan Suami" value={form.suami.kewarganegaraan} onChange={e => handlePersonFieldChange("suami", "kewarganegaraan", e.target.value)} required />
-            <Input label="Agama Suami" value={form.suami.agama} onChange={e => handlePersonFieldChange("suami", "agama", e.target.value)} required />
-            <Input label="Pekerjaan Suami" value={form.suami.pekerjaan} onChange={e => handlePersonFieldChange("suami", "pekerjaan", e.target.value)} required />
-            <Input label="Alamat Suami" value={form.suami.alamat} onChange={e => handlePersonFieldChange("suami", "alamat", e.target.value)} required />
+            <Input
+              label="Nama Calon Suami"
+              value={form.suami.name}
+              onChange={(e) =>
+                handlePersonFieldChange("suami", "name", e.target.value)
+              }
+              required
+            />
+            <Input
+              label="Bin Calon Suami"
+              value={form.suami.binOrBinti}
+              onChange={(e) =>
+                handlePersonFieldChange("suami", "binOrBinti", e.target.value)
+              }
+              required
+            />
+            <Input
+              label="NIK Calon Suami"
+              value={form.suami.nik}
+              onChange={(e) =>
+                handlePersonFieldChange("suami", "nik", e.target.value)
+              }
+              required
+            />
+            <Input
+              label="Tempat Lahir Suami"
+              value={form.suami.birthPlace}
+              onChange={(e) =>
+                handlePersonFieldChange("suami", "birthPlace", e.target.value)
+              }
+              required
+            />
+            <Input
+              label="Tanggal Lahir Suami"
+              type="date"
+              value={form.suami.birthDate}
+              onChange={(e) =>
+                handlePersonFieldChange("suami", "birthDate", e.target.value)
+              }
+              required
+            />
+            <Input
+              label="Kewarganegaraan Suami"
+              value={form.suami.kewarganegaraan}
+              onChange={(e) =>
+                handlePersonFieldChange(
+                  "suami",
+                  "kewarganegaraan",
+                  e.target.value
+                )
+              }
+              required
+            />
+            <Input
+              label="Agama Suami"
+              value={form.suami.agama}
+              onChange={(e) =>
+                handlePersonFieldChange("suami", "agama", e.target.value)
+              }
+              required
+            />
+            <Input
+              label="Pekerjaan Suami"
+              value={form.suami.pekerjaan}
+              onChange={(e) =>
+                handlePersonFieldChange("suami", "pekerjaan", e.target.value)
+              }
+              required
+            />
+            <Input
+              label="Alamat Suami"
+              value={form.suami.alamat}
+              onChange={(e) =>
+                handlePersonFieldChange("suami", "alamat", e.target.value)
+              }
+              required
+            />
           </div>
         </div>
         {/* Cari & edit istri */}
         <div className="md:col-span-2 mt-4">
-          <label className="block font-semibold mb-1">Cari NIK/Nama Calon Istri</label>
+          <label className="block font-semibold mb-1">
+            Cari NIK/Nama Calon Istri
+          </label>
           <div className="flex gap-2">
             <Input
               value={search.istri}
-              onChange={(e) => setSearch((s) => ({ ...s, istri: e.target.value }))}
+              onChange={(e) =>
+                setSearch((s) => ({ ...s, istri: e.target.value }))
+              }
               placeholder="Ketik NIK atau nama..."
             />
-            <Button type="button" variant="secondary" onClick={() => handleSearch("istri")}>Cari</Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => handleSearch("istri")}
+            >
+              Cari
+            </Button>
           </div>
           {results.istri.length > 0 && (
             <div className="bg-white border rounded shadow mt-1 max-h-48 overflow-auto z-10 relative">
@@ -270,15 +357,83 @@ const CreatePersetujuanCalonPengantinLetter: React.FC = () => {
             </div>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
-            <Input label="Nama Calon Istri" value={form.istri.name} onChange={e => handlePersonFieldChange("istri", "name", e.target.value)} required />
-            <Input label="Binti Calon Istri" value={form.istri.binOrBinti} onChange={e => handlePersonFieldChange("istri", "binOrBinti", e.target.value)} required />
-            <Input label="NIK Calon Istri" value={form.istri.nik} onChange={e => handlePersonFieldChange("istri", "nik", e.target.value)} required />
-            <Input label="Tempat Lahir Istri" value={form.istri.birthPlace} onChange={e => handlePersonFieldChange("istri", "birthPlace", e.target.value)} required />
-            <Input label="Tanggal Lahir Istri" type="date" value={form.istri.birthDate} onChange={e => handlePersonFieldChange("istri", "birthDate", e.target.value)} required />
-            <Input label="Kewarganegaraan Istri" value={form.istri.kewarganegaraan} onChange={e => handlePersonFieldChange("istri", "kewarganegaraan", e.target.value)} required />
-            <Input label="Agama Istri" value={form.istri.agama} onChange={e => handlePersonFieldChange("istri", "agama", e.target.value)} required />
-            <Input label="Pekerjaan Istri" value={form.istri.pekerjaan} onChange={e => handlePersonFieldChange("istri", "pekerjaan", e.target.value)} required />
-            <Input label="Alamat Istri" value={form.istri.alamat} onChange={e => handlePersonFieldChange("istri", "alamat", e.target.value)} required />
+            <Input
+              label="Nama Calon Istri"
+              value={form.istri.name}
+              onChange={(e) =>
+                handlePersonFieldChange("istri", "name", e.target.value)
+              }
+              required
+            />
+            <Input
+              label="Binti Calon Istri"
+              value={form.istri.binOrBinti}
+              onChange={(e) =>
+                handlePersonFieldChange("istri", "binOrBinti", e.target.value)
+              }
+              required
+            />
+            <Input
+              label="NIK Calon Istri"
+              value={form.istri.nik}
+              onChange={(e) =>
+                handlePersonFieldChange("istri", "nik", e.target.value)
+              }
+              required
+            />
+            <Input
+              label="Tempat Lahir Istri"
+              value={form.istri.birthPlace}
+              onChange={(e) =>
+                handlePersonFieldChange("istri", "birthPlace", e.target.value)
+              }
+              required
+            />
+            <Input
+              label="Tanggal Lahir Istri"
+              type="date"
+              value={form.istri.birthDate}
+              onChange={(e) =>
+                handlePersonFieldChange("istri", "birthDate", e.target.value)
+              }
+              required
+            />
+            <Input
+              label="Kewarganegaraan Istri"
+              value={form.istri.kewarganegaraan}
+              onChange={(e) =>
+                handlePersonFieldChange(
+                  "istri",
+                  "kewarganegaraan",
+                  e.target.value
+                )
+              }
+              required
+            />
+            <Input
+              label="Agama Istri"
+              value={form.istri.agama}
+              onChange={(e) =>
+                handlePersonFieldChange("istri", "agama", e.target.value)
+              }
+              required
+            />
+            <Input
+              label="Pekerjaan Istri"
+              value={form.istri.pekerjaan}
+              onChange={(e) =>
+                handlePersonFieldChange("istri", "pekerjaan", e.target.value)
+              }
+              required
+            />
+            <Input
+              label="Alamat Istri"
+              value={form.istri.alamat}
+              onChange={(e) =>
+                handlePersonFieldChange("istri", "alamat", e.target.value)
+              }
+              required
+            />
           </div>
         </div>
         <Input
@@ -286,7 +441,9 @@ const CreatePersetujuanCalonPengantinLetter: React.FC = () => {
           name="tanggalSurat"
           type="date"
           value={form.tanggalSurat}
-          onChange={e => setForm((f: any) => ({ ...f, tanggalSurat: e.target.value }))}
+          onChange={(e) =>
+            setForm((f: any) => ({ ...f, tanggalSurat: e.target.value }))
+          }
           required
         />
         <div className="md:col-span-2 flex space-x-2 mt-2">
