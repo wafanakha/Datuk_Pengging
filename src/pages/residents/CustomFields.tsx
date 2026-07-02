@@ -246,7 +246,7 @@ const CustomFields: React.FC = () => {
       <Card>
         <div className="mb-4">
           <p className="text-sm text-gray-700">
-            Field kustom memungkinkan Anda menambahkan informasi tambahan untuk setiap warga sesuai kebutuhan desa Anda.
+            Field kustom memungkinkan Anda menambahkan informasi tambahan untuk setiap warga sesuai kebutuhan kelurahan Anda.
             Field ini akan muncul di form tambah dan edit warga.
           </p>
         </div>

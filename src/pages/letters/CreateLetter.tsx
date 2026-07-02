@@ -64,13 +64,13 @@ const letterTypes = [
   {
     type: "wali-nikah",
     label: "Surat Keterangan Wali Nikah",
-    description: "Surat keterangan wali nikah tanpa kop, sesuai format desa.",
+    description: "Surat keterangan wali nikah tanpa kop, sesuai format kelurahan.",
     path: "/letters/create/wali-nikah",
   },
   {
     type: "pengantar-numpang-nikah",
     label: "Pengantar Numpang Nikah",
-    description: "Surat pengantar numpang nikah sesuai format desa.",
+    description: "Surat pengantar numpang nikah sesuai format kelurahan.",
     path: "/letters/create/pengantar-numpang-nikah",
   },
   {

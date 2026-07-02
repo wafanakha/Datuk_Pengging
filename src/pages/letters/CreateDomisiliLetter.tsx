@@ -74,17 +74,17 @@ const CreateDomisiliLetter: React.FC<{
       // Helper: perangkat fallback dari pengaturan Settings
       const fallback: { nama: string; jabatan: string }[] = [];
       const perangkatMap: Record<string, string> = {
-        leaderName: "Kepala Desa",
-        sekretaris: "Sekretaris Desa",
-        kaurUmumNTataUsaha: "Kaur Umum & Tata Usaha",
-        kaurKeuangan: "Kaur Keuangan",
-        kaurPerencanaan: "Kaur Perencanaan",
-        kasipemerintah: "Kasi Pemerintahan",
-        kasiKesejahteraan: "Kasi Kesejahteraan",
-        kasiPelayanan: "Kasi Pelayanan",
-        kadus1: "Kepala Dusun I",
-        kadus2: "Kepala Dusun II",
-        kadus3: "Kepala Dusun III",
+        leaderName: "Lurah",
+        sekretaris: "Sekretaris Kelurahan (Seklur)",
+        kaurUmumNTataUsaha: "Staf Administrasi/Tenaga IT",
+        kaurKeuangan: "Tenaga Kebersihan/Umum",
+        kaurPerencanaan: "Staf Operasional Kelurahan",
+        kasipemerintah: "Kasi Pemerintahan dan Pembangunan",
+        kasiKesejahteraan: "Kasi Kesejahteraan Sosial (Kesos)",
+        kasiPelayanan: "Kasi Ketentraman dan Ketertiban Umum (Trantib)",
+        kadus1: "Staf Kelurahan I",
+        kadus2: "Staf Kelurahan II",
+        kadus3: "Staf Kelurahan III",
       };
       Object.entries(perangkatMap).forEach(([field, jabatan]) => {
         const nama = info[field];
@@ -95,9 +95,9 @@ const CreateDomisiliLetter: React.FC<{
       setPerangkatFallback(fallback);
 
       if (fallback.length > 0) {
-        // Default: Kepala Desa jika ada, jika tidak perangkat pertama
+        // Default: Lurah jika ada, jika tidak perangkat pertama
         const kepalaDesa = fallback.find((p) =>
-          p.jabatan.toLowerCase().includes("kepala desa")
+          p.jabatan.toLowerCase().includes("lurah")
         );
         setSigner(kepalaDesa || fallback[0]);
       }
@@ -147,19 +147,19 @@ const CreateDomisiliLetter: React.FC<{
     doc.addImage(logo, "PNG", 20, 10, 24, 24);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
-    doc.text("PEMERINTAHAN DESA KEDUNGWRINGIN", 105, 15, { align: "center" });
-    doc.text("KECAMATAN PATIKRAJA KABUPATEN BANYUMAS", 105, 22, {
+    doc.text("PEMERINTAHAN KELURAHAN ARCAWINANGUN", 105, 15, { align: "center" });
+    doc.text("KECAMATAN PURWOKERTO TIMUR KABUPATEN BANYUMAS", 105, 22, {
       align: "center",
     });
     doc.setFontSize(10);
-    doc.text("SEKRETARIAT DESA", 105, 28, { align: "center" });
+    doc.text("SEKRETARIAT KELURAHAN", 105, 28, { align: "center" });
     doc.text(
-      "Jl. Raya Kedungwringin No. 1 Kedungwringin Kode Pos 53171",
+      "Jl. Balai Kelurahan No.32, Arcawinangun, Kec. Purwokerto Tim., Kabupaten Banyumas, Jawa Tengah 53113",
       105,
       34,
       { align: "center" }
     );
-    doc.text("Telp. (0281) 638395", 105, 40, { align: "center" });
+    doc.text("Telp. -", 105, 40, { align: "center" });
     doc.setLineWidth(0.5);
     doc.line(20, 44, 190, 44);
     doc.setFontSize(11);
@@ -175,7 +175,7 @@ const CreateDomisiliLetter: React.FC<{
     );
     doc.setFont("helvetica", "normal");
     doc.text(
-      "     Yang bertanda tangan di bawah ini, kami Kepala Desa Kedungwringin Kecamatan Patikraja Kabupaten Banyumas Provinsi Jawa Tengah, menerangkan bahwa:",
+      "     Yang bertanda tangan di bawah ini, kami Lurah Arcawinangun Kecamatan Purwokerto Timur Kabupaten Banyumas Provinsi Jawa Tengah, menerangkan bahwa:",
       15,
       70,
       { maxWidth: 180 }
@@ -212,7 +212,7 @@ const CreateDomisiliLetter: React.FC<{
         form.rtDate
           ? new Date(form.rtDate).toLocaleDateString("id-ID")
           : "Tanggal"
-      }, bahwa yang bersangkutan benar penduduk Desa Kedungwringin Kecamatan Patikraja Kabupaten Banyumas yang beralamat pada alamat tersebut diatas, surat ini dibuat untuk keperluan administrasi.`,
+      }, bahwa yang bersangkutan benar penduduk Kelurahan Arcawinangun Kecamatan Purwokerto Timur Kabupaten Banyumas yang beralamat pada alamat tersebut diatas, surat ini dibuat untuk keperluan administrasi.`,
       15,
       y,
       { maxWidth: 180 }
@@ -226,7 +226,7 @@ const CreateDomisiliLetter: React.FC<{
     );
     y += 20;
     doc.text(
-      `Kedungwringin, ${new Date().toLocaleDateString("id-ID", {
+      `Arcawinangun, ${new Date().toLocaleDateString("id-ID", {
         day: "2-digit",
         month: "long",
         year: "numeric",
@@ -236,14 +236,14 @@ const CreateDomisiliLetter: React.FC<{
       { align: "right" }
     );
     y += 6;
-    if (signer && !signer.jabatan.toLowerCase().includes("kepala desa")) {
-      doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 35, y, {
+    if (signer && !signer.jabatan.toLowerCase().includes("lurah")) {
+      doc.text("An. LURAH ARCAWINANGUN", pageWidth - 35, y, {
         align: "center",
       });
       y += 6;
     }
     doc.text(
-      signer?.jabatan?.toUpperCase() || "KASI PEMERINTAH",
+      signer?.jabatan?.toUpperCase() || "Kasi Pemerintahan dan Pembangunan",
       pageWidth - 35,
       y,
       { align: "center" }
@@ -483,24 +483,24 @@ const CreateDomisiliLetter: React.FC<{
             />
             <div className="instansi" style={{ textAlign: "center", flex: 1 }}>
               <div className="bold" style={{ fontWeight: "bold" }}>
-                PEMERINTAHAN DESA KEDUNGWRINGIN
+                PEMERINTAHAN KELURAHAN ARCAWINANGUN
               </div>
               <div className="bold" style={{ fontWeight: "bold" }}>
-                KECAMATAN PATIKRAJA KABUPATEN BANYUMAS
+                KECAMATAN PURWOKERTO TIMUR KABUPATEN BANYUMAS
               </div>
               <div className="bold" style={{ fontWeight: "bold" }}>
-                SEKRETARIAT DESA
+                SEKRETARIAT KELURAHAN
               </div>
               <div className="bold" style={{ fontWeight: "bold" }}>
-                Jl. Raya Kedungwringin No. 1 Kedungwringin Kode Pos 53171
+                Jl. Balai Kelurahan No.32, Arcawinangun, Kec. Purwokerto Tim., Kabupaten Banyumas, Jawa Tengah 53113
               </div>
               <div className="bold" style={{ fontWeight: "bold" }}>
-                Telp. (0281) 638395
+                Telp. -
               </div>
             </div>
           </div>
           <hr style={{ border: "1px solid black", marginTop: 10 }} />
-          <p>Kode Desa: 02122013</p>
+          <p>Kode Kemendagri: 33.02.26.1006 | Kode BPS: 3302730006</p>
           <h2
             style={{
               textAlign: "center",
@@ -515,8 +515,8 @@ const CreateDomisiliLetter: React.FC<{
           </p>
           <div className="content" style={{ marginTop: 30 }}>
             <p>
-              Yang bertanda tangan di bawah ini, kami Kepala Desa Kedungwringin
-              Kecamatan Patikraja Kabupaten Banyumas Provinsi Jawa Tengah,
+              Yang bertanda tangan di bawah ini, kami Lurah Arcawinangun
+              Kecamatan Purwokerto Timur Kabupaten Banyumas Provinsi Jawa Tengah,
               menerangkan bahwa:
             </p>
             <table style={{ marginLeft: 20 }}>
@@ -578,8 +578,8 @@ const CreateDomisiliLetter: React.FC<{
               {form.rtDate
                 ? new Date(form.rtDate).toLocaleDateString("id-ID")
                 : "Tanggal"}
-              , bahwa yang bersangkutan benar penduduk Desa Kedungwringin
-              Kecamatan Patikraja Kabupaten Banyumas yang beralamat pada alamat
+              , bahwa yang bersangkutan benar penduduk Kelurahan Arcawinangun
+              Kecamatan Purwokerto Timur Kabupaten Banyumas yang beralamat pada alamat
               tersebut diatas, surat ini dibuat untuk keperluan administrasi.
             </p>
             <p>
@@ -607,17 +607,17 @@ const CreateDomisiliLetter: React.FC<{
             >
               <div className="compact" style={{ textAlign: "center" }}>
                 <p>
-                  Kedungwringin,{" "}
+                  Arcawinangun,{" "}
                   {new Date().toLocaleDateString("id-ID", {
                     day: "2-digit",
                     month: "long",
                     year: "numeric",
                   })}
                 </p>
-                {/* Jika bukan kepala desa, tampilkan An. KEPALA DESA KEDUNGWRINGIN */}
+                {/* Jika bukan lurah, tampilkan An. LURAH ARCAWINANGUN */}
                 {signer &&
-                  !signer.jabatan.toLowerCase().includes("kepala desa") && (
-                    <p className="font-bold">An. KEPALA DESA KEDUNGWRINGIN</p>
+                  !signer.jabatan.toLowerCase().includes("lurah") && (
+                    <p className="font-bold">An. LURAH ARCAWINANGUN</p>
                   )}
                 <p>
                   {signer?.jabatan?.toUpperCase() ||

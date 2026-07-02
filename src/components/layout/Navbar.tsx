@@ -12,7 +12,7 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, isMobile }) => {
 
   // Get the page title based on the current route
   const getPageTitle = () => {
-    return "Sistem Data Untuk Penduduk Kedungwringin";
+    return "SAPA Arcawinangun";
   };
 
   return (

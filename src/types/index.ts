@@ -150,8 +150,13 @@ export interface VillageInfo {
   regencyName: string;
   provinceName: string;
   VillageCode: string;
+  bpsCode?: string;
+  postalCode?: string;
   phoneNumber: string;
+  email?: string;
+  website?: string;
   leaderName: string;
+  leaderTitle?: string;
   sekretaris: string;
   kaurUmumNTataUsaha: string;
   kaurKeuangan: string;
@@ -162,6 +167,9 @@ export interface VillageInfo {
   kadus1: string;
   kadus2: string;
   kadus3: string;
+  logoUrl?: string;
+  signatureUrl?: string;
+  perangkat?: Array<{ nama: string; jabatan: string }>;
 }
 
 export interface LetterHistory {
@@ -169,4 +177,10 @@ export interface LetterHistory {
   name: string;
   letter: LetterType;
   date: string;
+}
+
+export interface Official {
+  id?: number;
+  name: string;
+  title: string;
 }

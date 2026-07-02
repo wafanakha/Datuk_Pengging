@@ -1,178 +1,307 @@
-import { db } from './db';
-import { Letter, LetterTemplate, LetterType } from '../types';
+import { supabase, toCamel, toSnake } from "./supabaseClient";
+import { Letter, LetterTemplate, LetterType } from "../types";
 
 export const letterService = {
   // Letter management
   getAllLetters: async () => {
-    return db.letters.toArray();
+    const { data, error } = await supabase
+      .from("letters")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return toCamel(data) || [];
   },
 
   getLetterById: async (id: number) => {
-    return db.letters.get(id);
+    const { data, error } = await supabase
+      .from("letters")
+      .select("*")
+      .eq("id", id)
+      .single();
+    if (error) return undefined;
+    return toCamel(data);
   },
 
   getLettersByResident: async (residentId: number) => {
-    return db.letters.where('residentId').equals(residentId).toArray();
+    const { data, error } = await supabase
+      .from("letters")
+      .select("*")
+      .eq("resident_id", residentId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return toCamel(data) || [];
   },
 
   searchLetters: async (query: string) => {
-    const lowerQuery = query.toLowerCase();
-    
-    return db.letters
-      .filter(letter => 
-        letter.title.toLowerCase().includes(lowerQuery) || 
-        letter.letterNumber.includes(query)
-      )
-      .toArray();
+    const { data, error } = await supabase
+      .from("letters")
+      .select("*")
+      .or(`title.ilike.%${query}%,letter_number.ilike.%${query}%`)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return toCamel(data) || [];
   },
 
   generateLetterNumber: async (letterType: LetterType) => {
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth() + 1;
-    
+
     // Get count of letters of this type in the current year
-    const count = await db.letters
-      .filter(letter => {
-        const issuedDateObj = typeof letter.issuedDate === 'string' ? new Date(letter.issuedDate) : letter.issuedDate;
-        const letterYear = issuedDateObj.getFullYear();
-        return letter.letterType === letterType && letterYear === year;
-      })
-      .count();
-    
+    const startDate = `${year}-01-01`;
+    const endDate = `${year}-12-31`;
+
+    const { count, error } = await supabase
+      .from("letters")
+      .select("*", { count: "exact", head: true })
+      .eq("letter_type", letterType)
+      .gte("issued_date", startDate)
+      .lte("issued_date", endDate);
+
+    if (error) throw error;
+
+    const actualCount = count || 0;
+
     // Generate letter number format: 001/LTR-TYPE/MONTH/YEAR
     const typeCode = getLetterTypeCode(letterType);
-    const formattedCount = String(count + 1).padStart(3, '0');
-    const formattedMonth = String(month).padStart(2, '0');
-    
+    const formattedCount = String(actualCount + 1).padStart(3, "0");
+    const formattedMonth = String(month).padStart(2, "0");
+
     return `${formattedCount}/${typeCode}/${formattedMonth}/${year}`;
   },
 
-  addLetter: async function (letter: Letter) { // Ubah ke function agar 'this' merujuk ke letterService
+  addLetter: async function (letter: Letter) {
     if (!letter.letterNumber) {
-      letter.letterNumber = await letterService.generateLetterNumber(letter.letterType);
+      letter.letterNumber = await letterService.generateLetterNumber(
+        letter.letterType
+      );
     }
-    const now = new Date();
-    return db.letters.add({
+    const now = new Date().toISOString();
+    
+    // Format issuedDate appropriately as string YYYY-MM-DD
+    let issuedDateStr = "";
+    if (letter.issuedDate) {
+      const d = new Date(letter.issuedDate);
+      issuedDateStr = !isNaN(d.getTime()) ? d.toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
+    } else {
+      issuedDateStr = new Date().toISOString().slice(0, 10);
+    }
+
+    const letterSnake = toSnake({
       ...letter,
+      issuedDate: issuedDateStr,
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
     });
+    delete letterSnake.id;
+
+    const { data, error } = await supabase
+      .from("letters")
+      .insert(letterSnake)
+      .select()
+      .single();
+    if (error) throw error;
+    return toCamel(data).id;
   },
 
   updateLetter: async (id: number, letter: Partial<Letter>) => {
-    await db.letters.update(id, {
-      ...letter,
-      updatedAt: new Date()
-    });
+    const now = new Date().toISOString();
     
-    return db.letters.get(id);
+    const updatePayload: any = {
+      ...letter,
+      updatedAt: now
+    };
+
+    if (letter.issuedDate) {
+      const d = new Date(letter.issuedDate);
+      updatePayload.issuedDate = !isNaN(d.getTime()) ? d.toISOString().slice(0, 10) : undefined;
+    }
+
+    const letterSnake = toSnake(updatePayload);
+    delete letterSnake.id;
+
+    const { data, error } = await supabase
+      .from("letters")
+      .update(letterSnake)
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return toCamel(data);
   },
 
   deleteLetter: async (id: number) => {
-    return db.letters.delete(id);
+    const { error } = await supabase.from("letters").delete().eq("id", id);
+    if (error) throw error;
+    return true;
   },
 
   // Letter templates
   getAllTemplates: async () => {
-    return db.letterTemplates.toArray();
+    const { data, error } = await supabase
+      .from("letter_templates")
+      .select("*")
+      .order("name", { ascending: true });
+    if (error) throw error;
+    return toCamel(data) || [];
   },
 
   getTemplatesByType: async (type: LetterType) => {
-    return db.letterTemplates.where('type').equals(type).toArray();
+    const { data, error } = await supabase
+      .from("letter_templates")
+      .select("*")
+      .eq("type", type)
+      .order("name", { ascending: true });
+    if (error) throw error;
+    return toCamel(data) || [];
   },
 
   getDefaultTemplateByType: async (type: LetterType) => {
-    return db.letterTemplates
-      .where('type')
-      .equals(type)
-      .and(template => template.isDefault === true)
-      .first();
+    const { data, error } = await supabase
+      .from("letter_templates")
+      .select("*")
+      .eq("type", type)
+      .eq("is_default", true)
+      .maybeSingle();
+    if (error) return undefined;
+    return toCamel(data);
   },
 
   addTemplate: async (template: LetterTemplate) => {
-    // If this is set as default, unset other defaults of the same type
     if (template.isDefault) {
-      await db.letterTemplates
-        .where('type')
-        .equals(template.type)
-        .and(t => t.isDefault === true)
-        .modify({ isDefault: false });
+      await supabase
+        .from("letter_templates")
+        .update({ is_default: false })
+        .eq("type", template.type)
+        .eq("is_default", true);
     }
-    
-    const now = new Date();
-    return db.letterTemplates.add({
+
+    const now = new Date().toISOString();
+    const templateSnake = toSnake({
       ...template,
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
     });
+    delete templateSnake.id;
+
+    const { data, error } = await supabase
+      .from("letter_templates")
+      .insert(templateSnake)
+      .select()
+      .single();
+    if (error) throw error;
+    return toCamel(data).id;
   },
 
   updateTemplate: async (id: number, template: Partial<LetterTemplate>) => {
-    // If this is set as default, unset other defaults of the same type
     if (template.isDefault) {
-      const currentTemplate = await db.letterTemplates.get(id);
+      const currentTemplate = await letterService.getTemplateById(id);
       if (currentTemplate) {
-        await db.letterTemplates
-          .where('type')
-          .equals(currentTemplate.type)
-          .and(t => t.isDefault === true && t.id !== id)
-          .modify({ isDefault: false });
+        await supabase
+          .from("letter_templates")
+          .update({ is_default: false })
+          .eq("type", currentTemplate.type)
+          .eq("is_default", true)
+          .neq("id", id);
       }
     }
-    
-    await db.letterTemplates.update(id, {
+
+    const now = new Date().toISOString();
+    const templateSnake = toSnake({
       ...template,
-      updatedAt: new Date()
+      updatedAt: now,
     });
-    
-    return db.letterTemplates.get(id);
+    delete templateSnake.id;
+
+    const { data, error } = await supabase
+      .from("letter_templates")
+      .update(templateSnake)
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return toCamel(data);
+  },
+
+  getTemplateById: async (id: number) => {
+    const { data, error } = await supabase
+      .from("letter_templates")
+      .select("*")
+      .eq("id", id)
+      .single();
+    if (error) return undefined;
+    return toCamel(data);
   },
 
   deleteTemplate: async (id: number) => {
-    const template = await db.letterTemplates.get(id);
-    
-    // Prevent deletion of the last template of a type
+    const template = await letterService.getTemplateById(id);
+
     if (template) {
-      const countOfType = await db.letterTemplates
-        .where('type')
-        .equals(template.type)
-        .count();
-      
-      if (countOfType <= 1) {
-        throw new Error('Tidak dapat menghapus template terakhir untuk jenis surat ini');
+      const { count, error: countError } = await supabase
+        .from("letter_templates")
+        .select("*", { count: "exact", head: true })
+        .eq("type", template.type);
+
+      if (countError) throw countError;
+
+      const totalCount = count || 0;
+      if (totalCount <= 1) {
+        throw new Error(
+          "Tidak dapat menghapus template terakhir untuk jenis surat ini"
+        );
       }
-      
-      // If this was the default template, make another one default
+
       if (template.isDefault) {
-        const anotherTemplate = await db.letterTemplates
-          .where('type')
-          .equals(template.type)
-          .and(t => t.id !== id)
-          .first();
-        
+        const { data: anotherTemplate, error: findError } = await supabase
+          .from("letter_templates")
+          .select("id")
+          .eq("type", template.type)
+          .neq("id", id)
+          .limit(1)
+          .maybeSingle();
+
+        if (findError) throw findError;
+
         if (anotherTemplate) {
-          await db.letterTemplates.update(anotherTemplate.id!, { isDefault: true });
+          await supabase
+            .from("letter_templates")
+            .update({ is_default: true })
+            .eq("id", anotherTemplate.id);
         }
       }
     }
-    
-    return db.letterTemplates.delete(id);
-  }
+
+    const { error } = await supabase
+      .from("letter_templates")
+      .delete()
+      .eq("id", id);
+    if (error) throw error;
+    return true;
+  },
 };
 
 // Helper function to get letter type code
 function getLetterTypeCode(type: LetterType): string {
   switch (type) {
-    case 'domicile': return 'KET-DOM';
-    case 'poverty': return 'KET-TDK-MAMPU';
-    case 'introduction': return 'PENGANTAR';
-    case 'business': return 'KET-USAHA';
-    case 'birth': return 'KET-LAHIR';
-    case 'keramaian': return 'KERAMAIAN'; // Tambahkan kode untuk keramaian
-    case 'custom': return 'CUSTOM';
-    case 'wali-nikah': return 'WN';
-    case 'pengantar-numpang-nikah': return 'PNN';
-    default: return 'SURAT';
+    case "domicile":
+      return "KET-DOM";
+    case "poverty":
+      return "KET-TDK-MAMPU";
+    case "introduction":
+      return "PENGANTAR";
+    case "business":
+      return "KET-USAHA";
+    case "birth":
+      return "KET-LAHIR";
+    case "keramaian":
+      return "KERAMAIAN";
+    case "custom":
+      return "CUSTOM";
+    case "wali-nikah":
+      return "WN";
+    case "pengantar-numpang-nikah":
+      return "PNN";
+    default:
+      return "SURAT";
   }
 }

@@ -9,8 +9,8 @@ const CreateKelahiranLetter: React.FC = () => {
           <div className="text-center w-full">
             <div className="font-bold text-lg">PEMERINTAH KABUPATEN BUMI MAKMUR SEJAHTERA</div>
             <div className="font-bold text-lg">KECAMATAN MAKMUR JAYA</div>
-            <div className="font-bold text-xl">DESA BUMI MAKMUR</div>
-            <div className="text-sm">Jl. Raya Desa Bumi Makmur No. 1, Kode Pos 12345</div>
+            <div className="font-bold text-xl">KELURAHAN BUMI MAKMUR</div>
+            <div className="text-sm">Jl. Raya Kelurahan Bumi Makmur No. 1, Kode Pos 12345</div>
           </div>
         </div>
         <hr className="border-t-2 border-black my-2" />
@@ -18,7 +18,7 @@ const CreateKelahiranLetter: React.FC = () => {
           <div className="font-bold underline text-lg">SURAT KETERANGAN KELAHIRAN</div>
           <div className="text-sm">Nomor: 470/_____/BM/____/2024</div>
         </div>
-        <div className="mb-2">Yang bertanda tangan di bawah ini Kepala Desa Bumi Makmur, Kecamatan Makmur Jaya, Kabupaten Bumi Makmur Sejahtera, menerangkan bahwa:</div>
+        <div className="mb-2">Yang bertanda tangan di bawah ini Lurah Bumi Makmur, Kecamatan Makmur Jaya, Kabupaten Bumi Makmur Sejahtera, menerangkan bahwa:</div>
         <table className="mb-2">
           <tbody>
             <tr><td>Nama Anak</td><td className="px-2">:</td><td></td></tr>
@@ -35,9 +35,9 @@ const CreateKelahiranLetter: React.FC = () => {
         <div className="flex justify-end mt-8">
           <div className="text-center">
             <div>Bumi Makmur, .................... 2024</div>
-            <div className="font-bold">Kepala Desa Bumi Makmur</div>
+            <div className="font-bold">Lurah Bumi Makmur</div>
             <div style={{ height: '60px' }}></div>
-            <div className="font-bold underline">(Nama Kepala Desa)</div>
+            <div className="font-bold underline">(Nama Lurah)</div>
           </div>
         </div>
       </div>

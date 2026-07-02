@@ -130,18 +130,22 @@ const Dashboard: React.FC = () => {
               <MapPin className="text-teal-600" size={24} />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-gray-800">Profil Desa</h3>
-              <p className="text-lg text-gray-600">Informasi lengkap desa</p>
+              <h3 className="text-2xl font-bold text-gray-800">Profil Kelurahan</h3>
+              <p className="text-lg text-gray-600">Informasi lengkap kelurahan</p>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-lg">
             <div className="space-y-2">
-              <p className="font-semibold text-gray-700">Nama Desa</p>
+              <p className="font-semibold text-gray-700">Nama Kelurahan</p>
               <p className="text-gray-900">{village.name}</p>
             </div>
             <div className="space-y-2">
-              <p className="font-semibold text-gray-700">Kode Desa</p>
+              <p className="font-semibold text-gray-700">Kode Kemendagri</p>
               <p className="text-gray-900">{village.VillageCode}</p>
+            </div>
+            <div className="space-y-2">
+              <p className="font-semibold text-gray-700">Kode BPS</p>
+              <p className="text-gray-900">{village.bpsCode || "-"}</p>
             </div>
             <div className="space-y-2">
               <p className="font-semibold text-gray-700">Kecamatan</p>
@@ -152,7 +156,7 @@ const Dashboard: React.FC = () => {
               <p className="text-gray-900">{village.regencyName}</p>
             </div>
             <div className="space-y-2">
-              <p className="font-semibold text-gray-700">Kepala Desa</p>
+              <p className="font-semibold text-gray-700">Lurah</p>
               <p className="text-gray-900">{village.leaderName}</p>
             </div>
             <div className="space-y-2">

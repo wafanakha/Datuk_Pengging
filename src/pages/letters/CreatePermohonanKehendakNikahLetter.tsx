@@ -12,7 +12,7 @@ const initialForm = {
   tempatAkad: "",
   tanggalSurat: new Date().toISOString().slice(0, 10),
   daftarPersyaratan: [
-    "Surat pengantar nikah dari desa/Kelurahan",
+    "Surat pengantar nikah dari kelurahan/Kelurahan",
     "Persetujuan calon mempelai",
     "Fotokopi KTP",
     "Fotokopi akte kelahiran",

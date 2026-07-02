@@ -132,11 +132,11 @@ const CreatePengantarNumpangNikahLetter: React.FC<{
       y + 12,
       { align: "center" }
     );
-    doc.text(`DESA ${villageInfo?.name || "DESA"}`, 105, y + 18, {
+    doc.text(`KELURAHAN ${villageInfo?.name || "KELURAHAN"}`, 105, y + 18, {
       align: "center",
     });
     doc.setFontSize(10);
-    doc.text(villageInfo?.address || "Alamat Desa", 105, y + 24, {
+    doc.text(villageInfo?.address || "Alamat Kelurahan", 105, y + 24, {
       align: "center",
     });
     doc.text(`Telp. ${villageInfo?.phoneNumber || "-"}`, 105, y + 29, {
@@ -148,7 +148,13 @@ const CreatePengantarNumpangNikahLetter: React.FC<{
     y += 4;
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    doc.text(`Kode Desa: ${villageInfo?.postalCode || "Kode Pos"}`, 25, y);
+    doc.text(
+      `Kode Kemendagri: ${
+        villageInfo?.VillageCode || "33.02.26.1006"
+      } | Kode BPS: ${villageInfo?.bpsCode || "3302730006"}`,
+      25,
+      y
+    );
     y += 7;
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
@@ -159,8 +165,8 @@ const CreatePengantarNumpangNikahLetter: React.FC<{
     doc.text("Nomor: ", 105, y, { align: "center" });
     y += 10;
     doc.text(
-      `Yang bertanda tangan di bawah ini, kami Kepala Desa ${
-        villageInfo?.name || "Desa"
+      `Yang bertanda tangan di bawah ini, kami Lurah ${
+        villageInfo?.name || "Kelurahan"
       } Kecamatan ${villageInfo?.districtName || "-"} Kabupaten ${
         villageInfo?.regencyName || "-"
       } Provinsi ${villageInfo?.provinceName || "-"}, menerangkan bahwa:`,
@@ -222,7 +228,7 @@ const CreatePengantarNumpangNikahLetter: React.FC<{
     y += 14;
     // Tanda tangan
     doc.text(
-      `${villageInfo?.name || "Desa"}, ${new Date().toLocaleDateString(
+      `${villageInfo?.name || "Kelurahan"}, ${new Date().toLocaleDateString(
         "id-ID"
       )}`,
       140,
@@ -230,7 +236,7 @@ const CreatePengantarNumpangNikahLetter: React.FC<{
     );
     y += 7;
     doc.text(`${form.nama}`, 35, y + 35);
-    doc.text(`Kepala Desa ${villageInfo?.name || ""}`, 140, y);
+    doc.text(`Lurah ${villageInfo?.name || ""}`, 140, y);
     doc.text("Pemohon", 35, y + 6);
     doc.text(
       `(${villageInfo?.leaderName || "................................"})`,
@@ -459,10 +465,10 @@ const CreatePengantarNumpangNikahLetter: React.FC<{
                 KECAMATAN {villageInfo?.districtName || "KECAMATAN"}
               </div>
               <div className="bold" style={{ fontWeight: "bold" }}>
-                DESA {villageInfo?.name || "DESA"}
+                KELURAHAN {villageInfo?.name || "KELURAHAN"}
               </div>
               <div className="bold" style={{ fontWeight: "bold" }}>
-                {villageInfo?.address || "Alamat Desa"}
+                {villageInfo?.address || "Alamat Kelurahan"}
               </div>
               <div className="bold" style={{ fontWeight: "bold" }}>
                 Telp. {villageInfo?.phoneNumber || "-"}
@@ -470,7 +476,10 @@ const CreatePengantarNumpangNikahLetter: React.FC<{
             </div>
           </div>
           <hr style={{ border: "1px solid black", marginTop: 10 }} />
-          <p>Kode Desa: {villageInfo?.postalCode || "Kode Pos"}</p>
+          <p>
+            Kode Kemendagri: {villageInfo?.VillageCode || "33.02.26.1006"} |
+            Kode BPS: {villageInfo?.bpsCode || "3302730006"}
+          </p>
           <h2
             style={{
               textAlign: "center",
@@ -483,8 +492,8 @@ const CreatePengantarNumpangNikahLetter: React.FC<{
           <p style={{ textAlign: "center" }}>Nomor: 123/SKTM/[BULAN]/[TAHUN]</p>
           <div className="content" style={{ marginTop: 30 }}>
             <p>
-              Yang bertanda tangan di bawah ini, kami Kepala Desa Kedungwringin
-              Kecamatan Patikraja Kabupaten Banyumas Provinsi Jawa Tengah,
+              Yang bertanda tangan di bawah ini, kami Lurah Arcawinangun
+              Kecamatan Purwokerto Timur Kabupaten Banyumas Provinsi Jawa Tengah,
               menerangkan bahwa:
             </p>
             <table style={{ marginLeft: 20 }}>
@@ -615,11 +624,11 @@ const CreatePengantarNumpangNikahLetter: React.FC<{
             >
               <div className="compact" style={{ textAlign: "center" }}>
                 <p>
-                  {villageInfo?.name || "Desa"},{" "}
+                  {villageInfo?.name || "Kelurahan"},{" "}
                   {new Date().toLocaleDateString("id-ID")}
                 </p>
-                <p>Kepala Desa {villageInfo?.name || ""}</p>
-                <p>KASI PEMERINTAH</p>
+                <p>Lurah {villageInfo?.name || ""}</p>
+                <p>Kasi Pemerintahan dan Pembangunan</p>
               </div>
               <div style={{ marginTop: "auto" }}>
                 <div
@@ -631,7 +640,7 @@ const CreatePengantarNumpangNikahLetter: React.FC<{
                 ></div>
                 <p>
                   <strong>
-                    {villageInfo?.leaderName || "[Nama Kepala Desa]"}
+                    {villageInfo?.leaderName || "[Nama Lurah]"}
                   </strong>
                 </p>
               </div>

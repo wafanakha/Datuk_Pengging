@@ -11,7 +11,7 @@ export const exportService = {
   exportDatabase: async () => {
     const data = await db.exportData();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    saveAs(blob, `backup-administrasi-desa-${new Date().toISOString().slice(0, 10)}.json`);
+    saveAs(blob, `backup-administrasi-kelurahan-${new Date().toISOString().slice(0, 10)}.json`);
   },
 
   importDatabase: async (file: File): Promise<boolean> => {
@@ -232,7 +232,7 @@ async function addLetterheadToPdf(doc: jsPDF, villageInfo: VillageInfo) {
   doc.text('PEMERINTAH ' + villageInfo.regencyName.toUpperCase(), 105, 15, { align: 'center' });
   doc.text('KECAMATAN ' + villageInfo.districtName.toUpperCase(), 105, 22, { align: 'center' });
   doc.setFontSize(18);
-  doc.text('DESA ' + villageInfo.name.toUpperCase(), 105, 30, { align: 'center' });
+  doc.text('KELURAHAN ' + villageInfo.name.toUpperCase(), 105, 30, { align: 'center' });
   
   // Add address
   doc.setFontSize(10);
@@ -278,7 +278,7 @@ function createLetterHeader(villageInfo: VillageInfo): Paragraph[] {
     new Paragraph({
       children: [
         new TextRun({
-          text: 'DESA ' + villageInfo.name.toUpperCase(),
+          text: 'KELURAHAN ' + villageInfo.name.toUpperCase(),
           bold: true,
           size: 32
         })

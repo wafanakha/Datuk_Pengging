@@ -10,7 +10,9 @@ import {
   X,
   ChevronDown,
   ChevronRight,
+  LogOut,
 } from "lucide-react";
+import { supabase } from "../../database/supabaseClient";
 
 interface SidebarProps {
   isMobile: boolean;
@@ -226,7 +228,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobile, isOpen, onToggle }) => {
 
       <aside className={sidebarClasses}>
         <div className="p-4 border-b flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-teal-700">Datuk Pengging</h1>
+          <h1 className="text-2xl font-bold text-teal-700">SAPA Arcawinangun</h1>
           {isMobile && (
             <button onClick={onToggle} className="p-1">
               <X size={24} className="text-gray-500" />
@@ -236,8 +238,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobile, isOpen, onToggle }) => {
 
         <nav className="p-4 space-y-1">
           {menuItems.map((item) => (
-            <MenuItem key={item.path} item={item} />
+            <MenuItem key={item.title} item={item} />
           ))}
+          <button
+            onClick={async () => {
+              const { error } = await supabase.auth.signOut();
+              if (error) console.error("Error signing out:", error.message);
+            }}
+            className="flex items-center w-full px-4 py-2 mt-4 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-md transition-colors font-medium text-base text-left"
+          >
+            <span className="mr-3 text-red-500"><LogOut size={20} /></span>
+            <span>Keluar</span>
+          </button>
         </nav>
       </aside>
 
