@@ -8,7 +8,9 @@ import {
   VillageInfo,
   LetterType,
   LetterHistory,
+  Official,
 } from "../types";
+import { supabase, toCamel, toSnake } from "./supabaseClient";
 
 class VillageAdministrationDB extends Dexie {
   residents!: Table<Resident, number>;
@@ -18,12 +20,12 @@ class VillageAdministrationDB extends Dexie {
   letterTemplates!: Table<LetterTemplate, number>;
   villageInfo!: Table<VillageInfo, number>;
   letterHistory!: Table<LetterHistory, number>;
-  officials!: Table<import("../types").Official, number>;
+  officials!: Table<Official, number>;
 
   constructor() {
     super("VillageAdministrationDB");
 
-    this.version(1).stores({
+    const schema = {
       residents:
         "++id, kk, nik, name, birthDate, gender, address, rt, rw, religion, occupation, maritalStatus, createdAt, updatedAt",
       customFields: "++id, name, type, required",
@@ -34,7 +36,12 @@ class VillageAdministrationDB extends Dexie {
       villageInfo: "++id, name",
       letterHistory: "++id, name, letter, date, nik",
       officials: "++id, name, title",
-    });
+    };
+
+    this.version(1).stores(schema);
+
+    // Bump schema version so older IndexedDB snapshots can upgrade safely.
+    this.version(2).stores(schema);
 
     // Initialize default templates
     this.on("ready", async () => {
@@ -71,7 +78,7 @@ Agama: [RESIDENT_RELIGION]
 Pekerjaan: [RESIDENT_OCCUPATION]
 Status Perkawinan: [RESIDENT_MARITAL_STATUS]
         
-Adalah benar warga yang berdomisili di [RESIDENT_ADDRESS], Desa [VILLAGE_NAME], Kecamatan [VILLAGE_DISTRICT], Kabupaten [VILLAGE_REGENCY], Provinsi [VILLAGE_PROVINCE].
+Adalah benar warga yang berdomisili di [RESIDENT_ADDRESS], Kelurahan [VILLAGE_NAME], Kecamatan [VILLAGE_DISTRICT], Kabupaten [VILLAGE_REGENCY], Provinsi [VILLAGE_PROVINCE].
         
 Surat Keterangan ini dibuat untuk keperluan [LETTER_PURPOSE].
         
@@ -99,7 +106,7 @@ Pekerjaan: [RESIDENT_OCCUPATION]
 Status Perkawinan: [RESIDENT_MARITAL_STATUS]
 Alamat: [RESIDENT_ADDRESS]
         
-Berdasarkan pengamatan kami, yang bersangkutan adalah benar termasuk keluarga tidak mampu/prasejahtera di Desa [VILLAGE_NAME], Kecamatan [VILLAGE_DISTRICT], Kabupaten [VILLAGE_REGENCY], Provinsi [VILLAGE_PROVINCE].
+Berdasarkan pengamatan kami, yang bersangkutan adalah benar termasuk keluarga tidak mampu/prasejahtera di Kelurahan [VILLAGE_NAME], Kecamatan [VILLAGE_DISTRICT], Kabupaten [VILLAGE_REGENCY], Provinsi [VILLAGE_PROVINCE].
         
 Surat Keterangan ini dibuat untuk keperluan [LETTER_PURPOSE].
         
@@ -153,7 +160,7 @@ Pekerjaan: [RESIDENT_OCCUPATION]
 Status Perkawinan: [RESIDENT_MARITAL_STATUS]
 Alamat: [RESIDENT_ADDRESS]
         
-Adalah benar memiliki usaha [BUSINESS_TYPE] yang berlokasi di [BUSINESS_ADDRESS], Desa [VILLAGE_NAME], Kecamatan [VILLAGE_DISTRICT], Kabupaten [VILLAGE_REGENCY], Provinsi [VILLAGE_PROVINCE].
+Adalah benar memiliki usaha [BUSINESS_TYPE] yang berlokasi di [BUSINESS_ADDRESS], Kelurahan [VILLAGE_NAME], Kecamatan [VILLAGE_DISTRICT], Kabupaten [VILLAGE_REGENCY], Provinsi [VILLAGE_PROVINCE].
         
 Surat Keterangan ini dibuat untuk keperluan [LETTER_PURPOSE].
         
@@ -200,67 +207,85 @@ Demikian Surat Keterangan ini dibuat untuk dipergunakan sebagaimana mestinya.`,
 
   async initializeVillageInfo() {
     const defaultVillageInfo: VillageInfo = {
-      name: "Desa Contoh",
-      address: "Jl. Desa No. 1",
-      districtName: "Kecamatan Contoh",
-      regencyName: "Kabupaten Contoh",
-      provinceName: "Provinsi Contoh",
-      postalCode: "12345",
-      phoneNumber: "021-1234567",
-      email: "desa.contoh@example.com",
-      website: "www.desacontoh.id",
-      leaderName: "Bpk. Kepala Desa",
-      leaderTitle: "Kepala Desa",
+      name: "Arcawinangun",
+      address:
+        "Jl. Balai Kelurahan No.32, Arcawinangun, Kec. Purwokerto Tim., Kabupaten Banyumas, Jawa Tengah 53113",
+      districtName: "Purwokerto Timur",
+      regencyName: "Banyumas",
+      provinceName: "Jawa Tengah",
+      VillageCode: "33.02.26.1006",
+      bpsCode: "3302730006",
+      phoneNumber: "-",
+      leaderName: "Nama Lurah Arcawinangun",
+      sekretaris: "Nama Sekretaris Kelurahan (Seklur)",
+      kasipemerintah: "Nama Kasi Pemerintahan dan Pembangunan",
+      kasiKesejahteraan: "Nama Kasi Kesejahteraan Sosial (Kesos)",
+      kasiPelayanan: "Nama Kasi Ketentraman dan Ketertiban Umum (Trantib)",
+      kaurUmumNTataUsaha: "Nama Staf Administrasi/Tenaga IT",
+      kaurKeuangan: "Nama Tenaga Kebersihan/Umum",
+      kaurPerencanaan: "Nama Staf Pendukung Kelurahan",
+      kadus1: "Nama Staf Pendukung Kelurahan 1",
+      kadus2: "Nama Staf Pendukung Kelurahan 2",
+      kadus3: "Nama Staf Pendukung Kelurahan 3",
+      leaderTitle: "Lurah",
     };
 
     await this.villageInfo.add(defaultVillageInfo);
   }
 
   async exportData() {
+    const { data: residents } = await supabase.from("residents").select("*");
+    const { data: customFields } = await supabase.from("custom_fields").select("*");
+    const { data: residentCustomFields } = await supabase.from("resident_custom_fields").select("*");
+    const { data: letters } = await supabase.from("letters").select("*");
+    const { data: letterTemplates } = await supabase.from("letter_templates").select("*");
+    const { data: villageInfo } = await supabase.from("village_info").select("*");
+
     return {
-      residents: await this.residents.toArray(),
-      customFields: await this.customFields.toArray(),
-      residentCustomFields: await this.residentCustomFields.toArray(),
-      letters: await this.letters.toArray(),
-      letterTemplates: await this.letterTemplates.toArray(),
-      villageInfo: await this.villageInfo.toArray(),
+      residents: toCamel(residents || []),
+      customFields: toCamel(customFields || []),
+      residentCustomFields: toCamel(residentCustomFields || []),
+      letters: toCamel(letters || []),
+      letterTemplates: toCamel(letterTemplates || []),
+      villageInfo: toCamel(villageInfo || []),
     };
   }
 
   async importData(data: any) {
-    return this.transaction(
-      "rw",
-      this.residents,
-      this.customFields,
-      this.residentCustomFields,
-      this.letters,
-      this.letterTemplates,
-      this.villageInfo,
-      async () => {
-        // Clear existing data
-        await Promise.all([
-          this.residents.clear(),
-          this.customFields.clear(),
-          this.residentCustomFields.clear(),
-          this.letters.clear(),
-          this.letterTemplates.clear(),
-          this.villageInfo.clear(),
-        ]);
+    // Clean all existing data from Supabase tables
+    await supabase.from("resident_custom_fields").delete().neq("id", -1);
+    await supabase.from("letters").delete().neq("id", -1);
+    await supabase.from("residents").delete().neq("id", -1);
+    await supabase.from("custom_fields").delete().neq("id", -1);
+    await supabase.from("letter_templates").delete().neq("id", -1);
+    await supabase.from("village_info").delete().neq("id", -1);
 
-        // Import new data
-        if (data.villageInfo?.length)
-          await this.villageInfo.bulkAdd(data.villageInfo);
-        if (data.residents?.length)
-          await this.residents.bulkAdd(data.residents);
-        if (data.customFields?.length)
-          await this.customFields.bulkAdd(data.customFields);
-        if (data.residentCustomFields?.length)
-          await this.residentCustomFields.bulkAdd(data.residentCustomFields);
-        if (data.letterTemplates?.length)
-          await this.letterTemplates.bulkAdd(data.letterTemplates);
-        if (data.letters?.length) await this.letters.bulkAdd(data.letters);
-      }
-    );
+    // Import new data in order to respect foreign key constraints
+    if (data.villageInfo && data.villageInfo.length > 0) {
+      const { error } = await supabase.from("village_info").insert(toSnake(data.villageInfo));
+      if (error) console.error("Error importing villageInfo:", error.message);
+    }
+    if (data.customFields && data.customFields.length > 0) {
+      const { error } = await supabase.from("custom_fields").insert(toSnake(data.customFields));
+      if (error) console.error("Error importing customFields:", error.message);
+    }
+    if (data.residents && data.residents.length > 0) {
+      const { error } = await supabase.from("residents").insert(toSnake(data.residents));
+      if (error) console.error("Error importing residents:", error.message);
+    }
+    if (data.residentCustomFields && data.residentCustomFields.length > 0) {
+      const { error } = await supabase.from("resident_custom_fields").insert(toSnake(data.residentCustomFields));
+      if (error) console.error("Error importing residentCustomFields:", error.message);
+    }
+    if (data.letterTemplates && data.letterTemplates.length > 0) {
+      const { error } = await supabase.from("letter_templates").insert(toSnake(data.letterTemplates));
+      if (error) console.error("Error importing letterTemplates:", error.message);
+    }
+    if (data.letters && data.letters.length > 0) {
+      const { error } = await supabase.from("letters").insert(toSnake(data.letters));
+      if (error) console.error("Error importing letters:", error.message);
+    }
+    return true;
   }
 }
 

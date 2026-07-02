@@ -48,7 +48,7 @@ const Layout: React.FC = () => {
 
           <footer className="bg-white border-t px-6 py-4">
             <p className="text-sm text-center text-gray-600">
-              &copy; {new Date().getFullYear()} Sistem Administrasi Desa - Versi
+              &copy; {new Date().getFullYear()} Sistem Administrasi Kelurahan - Versi
               0.1.0
             </p>
           </footer>

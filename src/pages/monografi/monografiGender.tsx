@@ -31,10 +31,10 @@ const MonografiGender = ({ residents }: Props) => {
     doc.text("PEMERINTAH KABUPATEN BANYUMAS", pageWidth / 2, 14, {
       align: "center",
     });
-    doc.text("KECAMATAN PATIKRAJA", pageWidth / 2, 20, {
+    doc.text("KECAMATAN PURWOKERTO TIMUR", pageWidth / 2, 20, {
       align: "center",
     });
-    doc.text("DESA/KELURAHAN KEDUNGWRINGIN", pageWidth / 2, 26, {
+    doc.text("KELURAHAN/KELURAHAN ARCAWINANGUN", pageWidth / 2, 26, {
       align: "center",
     });
 

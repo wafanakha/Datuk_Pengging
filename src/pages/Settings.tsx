@@ -20,7 +20,120 @@ import Card from "../components/ui/Card";
 import Modal from "../components/ui/Modal";
 import { toast } from "react-toastify";
 
-const Settings: React.FC = () => {
+interface SettingsProps {
+  onResidentsImported?: () => Promise<void> | void;
+}
+
+const normalizeText = (value: unknown) => String(value ?? "").trim();
+
+const normalizeGender = (value: unknown) => {
+  const normalized = normalizeText(value).toLowerCase();
+  if (["l", "laki-laki", "laki laki", "male", "pria"].includes(normalized)) {
+    return "Laki-laki";
+  }
+  if (["p", "perempuan", "female", "wanita"].includes(normalized)) {
+    return "Perempuan";
+  }
+  return "Laki-laki";
+};
+
+const normalizeReligion = (value: unknown) => {
+  const normalized = normalizeText(value).toLowerCase();
+  if (normalized === "islam") return "Islam";
+  if (["protestan", "kristen", "kristen protestan"].includes(normalized)) {
+    return "Protestan";
+  }
+  if (["katolik", "kristen katolik"].includes(normalized)) return "Katolik";
+  if (normalized === "hindu") return "Hindu";
+  if (normalized === "buddha") return "Buddha";
+  if (normalized === "konghucu") return "Konghucu";
+  return "Islam";
+};
+
+const normalizeBloodType = (value: unknown) => {
+  const normalized = normalizeText(value).toUpperCase();
+  const validBloodTypes = [
+    "A",
+    "B",
+    "AB",
+    "O",
+    "A+",
+    "A-",
+    "B+",
+    "B-",
+    "AB+",
+    "AB-",
+    "O+",
+    "O-",
+    "TIDAK TAHU",
+  ];
+
+  return validBloodTypes.includes(normalized) ? normalized : "TIDAK TAHU";
+};
+
+const normalizeEducation = (value: unknown) => {
+  const normalized = normalizeText(value);
+  const mapping: Record<string, string> = {
+    "SD/Sederajat": "Tamat SD/Sederajat",
+    "Diploma I/II/III": "Akademi/Diploma III/S. Muda",
+    Strata2: "Strata II",
+    Strata3: "Strata III",
+  };
+
+  return mapping[normalized] || normalized || "Tidak/belum sekolah";
+};
+
+const normalizeMaritalStatus = (value: unknown) => {
+  const normalized = normalizeText(value).toLowerCase();
+  if (["belum kawin", "single"].includes(normalized)) return "Belum Kawin";
+  if (["kawin", "menikah", "married"].includes(normalized)) return "Kawin";
+  if (["cerai hidup", "cerai"].includes(normalized)) return "Cerai Hidup";
+  if (["cerai mati", "janda", "duda", "widowed"].includes(normalized)) {
+    return "Cerai Mati";
+  }
+  return "Belum Kawin";
+};
+
+const normalizeShdk = (value: unknown) => {
+  const normalized = normalizeText(value).toLowerCase();
+  if (["kepala keluarga", "kk"].includes(normalized)) return "Kepala Keluarga";
+  if (["anak"].includes(normalized)) return "Anak";
+  if (["istri", "suami"].includes(normalized)) return "Istri";
+  return "Lainnya";
+};
+
+const normalizeRtRw = (value: unknown) => {
+  const normalized = normalizeText(value);
+  const digitsOnly = normalized.replace(/\D/g, "");
+  const source = digitsOnly || normalized;
+  return (source || "000").padStart(3, "0");
+};
+
+const toBoolean = (value: unknown) => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") return value.toLowerCase() === "true";
+  return Boolean(value);
+};
+
+const toDate = (value: unknown, fallback = new Date()) => {
+  const parsed = new Date(normalizeText(value));
+  return Number.isNaN(parsed.getTime()) ? fallback : parsed;
+};
+
+const calculateAge = (birthDate: string, today: Date) => {
+  const birth = new Date(birthDate);
+  if (Number.isNaN(birth.getTime())) return 0;
+
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+
+  return age;
+};
+
+const Settings: React.FC<SettingsProps> = ({ onResidentsImported }) => {
   const [villageInfo, setVillageInfo] = useState<VillageInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,6 +179,7 @@ const Settings: React.FC = () => {
         setValue("phoneNumber", info.phoneNumber);
         setValue("leaderName", info.leaderName);
         setValue("VillageCode", info.VillageCode);
+        setValue("bpsCode", info.bpsCode);
         setValue("kasipemerintah", info.kasipemerintah);
         setValue("sekretaris", info.sekretaris);
         setValue("kaurUmumNTataUsaha", info.kaurUmumNTataUsaha);
@@ -77,9 +191,10 @@ const Settings: React.FC = () => {
         setValue("kadus2", info.kadus2);
         setValue("kadus3", info.kadus3);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error loading village info:", error);
-      toast.error("Gagal memuat informasi desa");
+      const errMsg = error?.message || error?.details || JSON.stringify(error);
+      toast.error(`Gagal memuat informasi kelurahan: ${errMsg}`);
     } finally {
       setIsLoading(false);
     }
@@ -90,11 +205,12 @@ const Settings: React.FC = () => {
 
     try {
       await villageService.updateVillageInfo(data);
-      toast.success("Informasi desa berhasil diperbarui");
+      toast.success("Informasi kelurahan berhasil diperbarui");
       loadVillageInfo();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating village info:", error);
-      toast.error("Gagal memperbarui informasi desa");
+      const errMsg = error?.message || error?.details || JSON.stringify(error);
+      toast.error(`Gagal memperbarui informasi kelurahan: ${errMsg}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -113,23 +229,27 @@ const Settings: React.FC = () => {
     }
   };
 
-  interface ImportModalProps {
-    isOpen: boolean;
-    setIsImportModalOpen: (open: boolean) => void;
-  }
-
   const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setImportedFile(file);
     }
   };
+
   const confirmImport = async () => {
-    const reader = new FileReader();
     if (!importedFile) {
       toast.error("Tidak ada file yang dipilih");
       return;
     }
+
+    setIsImporting(true);
+
+    const reader = new FileReader();
+    reader.onerror = () => {
+      toast.error("Gagal membaca file JSON");
+      setIsImporting(false);
+    };
+
     reader.readAsText(importedFile);
     reader.onload = async (event) => {
       try {
@@ -143,31 +263,57 @@ const Settings: React.FC = () => {
         // Optional: Bersihkan database dulu
         await db.residents.clear();
 
-        // Optional: Hitung ulang usia
+        // Normalisasi nilai agar kompatibel dengan perhitungan monografi
         const today = new Date();
-        const parsedResidents = json.residents.map((r: any) => ({
-          ...r,
-          age:
-            today.getFullYear() -
-            new Date(r.birthDate).getFullYear() -
-            (today <
-            new Date(
-              today.getFullYear(),
-              new Date(r.birthDate).getMonth(),
-              new Date(r.birthDate).getDate()
-            )
-              ? 1
-              : 0),
-          createdAt: new Date(r.createdAt),
-          updatedAt: new Date(r.updatedAt),
-        }));
+        const parsedResidents = json.residents.map((resident: any) => {
+          const { id, ...residentWithoutId } = resident;
+          const birthDate = normalizeText(resident.birthDate);
+          const createdAt = toDate(resident.createdAt, today);
+          const updatedAt = toDate(resident.updatedAt, createdAt);
+
+          return {
+            ...residentWithoutId,
+            kk: normalizeText(resident.kk),
+            nik: normalizeText(resident.nik),
+            name: normalizeText(resident.name),
+            birthPlace: normalizeText(resident.birthPlace),
+            birthDate,
+            age: calculateAge(birthDate, today),
+            gender: normalizeGender(resident.gender),
+            address: normalizeText(resident.address),
+            rt: normalizeRtRw(resident.rt),
+            rw: normalizeRtRw(resident.rw),
+            shdk: normalizeShdk(resident.shdk),
+            maritalStatus: normalizeMaritalStatus(resident.maritalStatus),
+            education: normalizeEducation(resident.education),
+            religion: normalizeReligion(resident.religion),
+            bloodType: normalizeBloodType(resident.bloodType),
+            occupation: normalizeText(resident.occupation),
+            fatherName: normalizeText(resident.fatherName),
+            motherName: normalizeText(resident.motherName),
+            ktpEl: toBoolean(resident.ktpEl),
+            marriageCertificate: toBoolean(resident.marriageCertificate),
+            divorceCertificate: toBoolean(resident.divorceCertificate),
+            birthCertificate: toBoolean(resident.birthCertificate),
+            createdAt,
+            updatedAt,
+          };
+        });
 
         await db.residents.bulkAdd(parsedResidents);
+        await onResidentsImported?.();
+
         toast.success("Impor data berhasil");
         setIsImportModalOpen(false);
+        setImportedFile(null);
+        if (importInputRef.current) {
+          importInputRef.current.value = "";
+        }
       } catch (err) {
         console.error(err);
         toast.error("Gagal mengimpor file JSON");
+      } finally {
+        setIsImporting(false);
       }
     };
   };
@@ -199,19 +345,20 @@ const Settings: React.FC = () => {
       <h2 className="text-2xl font-bold text-gray-800">Pengaturan</h2>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Village Information */}
-        <Card title="Informasi Desa">
+        <Card title="Informasi Kelurahan">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Input
-              label="Nama Desa"
-              {...register("name", { required: "Nama desa wajib diisi" })}
+              label="Nama Kelurahan"
+              {...register("name", { required: "Nama kelurahan wajib diisi" })}
               error={errors.name?.message}
               fullWidth
             />
 
             <Input
               label="Alamat"
-              {...register("address", { required: "Alamat desa wajib diisi" })}
+              {...register("address", {
+                required: "Alamat kelurahan wajib diisi",
+              })}
               error={errors.address?.message}
               fullWidth
             />
@@ -244,11 +391,18 @@ const Settings: React.FC = () => {
             />
 
             <Input
-              label="Kode Desa"
+              label="Kode Kemendagri"
               {...register("VillageCode", {
-                required: "Kode Desa wajib diisi",
+                required: "Kode Kemendagri wajib diisi",
               })}
               error={errors.VillageCode?.message}
+              fullWidth
+            />
+
+            <Input
+              label="Kode BPS"
+              {...register("bpsCode")}
+              error={errors.bpsCode?.message}
               fullWidth
             />
 
@@ -263,94 +417,103 @@ const Settings: React.FC = () => {
           </div>
         </Card>
 
-        {/* Leader Information */}
-        <Card title="Informasi Pemerintah Desa">
+        <Card title="Informasi Pemerintah Kelurahan">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Input
-              label="Nama Kepala Desa"
+              label="Nama Lurah"
               {...register("leaderName", {
-                required: "Nama kepala desa wajib diisi",
+                required: "Nama lurah wajib diisi",
               })}
               error={errors.leaderName?.message}
               fullWidth
             />
 
             <Input
-              label="Nama Sekretaris Desa"
+              label="Nama Sekretaris Kelurahan (Seklur)"
               {...register("sekretaris", {
-                required: "Nama Sekretaris Desa Wajib diisi",
+                required: "Nama Sekretaris Kelurahan (Seklur) wajib diisi",
               })}
               error={errors.sekretaris?.message}
               fullWidth
             />
+
             <Input
-              label="Nama Kaur Umum dan Tata Usaha"
-              {...register("kaurUmumNTataUsaha", {
-                required: "Nama kaur Umum dan Tata Usaha wajib diisi",
-              })}
-              error={errors.kaurUmumNTataUsaha?.message}
-              fullWidth
-            />
-            <Input
-              label="Nama Kaur Keuangan"
-              {...register("kaurKeuangan", {
-                required: "Nama kaur keuangan wajib diisi",
-              })}
-              error={errors.kaurKeuangan?.message}
-              fullWidth
-            />
-            <Input
-              label="Nama Kaur Perencanaan"
-              {...register("kaurPerencanaan", {
-                required: "Nama kaur Perencanaan",
-              })}
-              error={errors.kaurPerencanaan?.message}
-              fullWidth
-            />
-            <Input
-              label="Nama Kasi Pemerintah"
+              label="Nama Kasi Pemerintahan dan Pembangunan"
               {...register("kasipemerintah", {
-                required: "Nama Kasi pemerintah wajib diisi",
+                required: "Nama Kasi Pemerintahan dan Pembangunan wajib diisi",
               })}
               error={errors.kasipemerintah?.message}
               fullWidth
             />
+
             <Input
-              label="Nama Kasi Kesejahteraan"
+              label="Nama Kasi Kesejahteraan Sosial (Kesos)"
               {...register("kasiKesejahteraan", {
-                required: "Nama Kasi Kesejahteraan wajib diisi",
+                required: "Nama Kasi Kesejahteraan Sosial (Kesos) wajib diisi",
               })}
               error={errors.kasiKesejahteraan?.message}
               fullWidth
             />
+
             <Input
-              label="Nama Kasi Pelayanan"
+              label="Nama Kasi Ketentraman dan Ketertiban Umum (Trantib)"
               {...register("kasiPelayanan", {
-                required: "Nama kaur Pelayanan wajib diisi",
+                required:
+                  "Nama Kasi Ketentraman dan Ketertiban Umum (Trantib) wajib diisi",
               })}
               error={errors.kasiPelayanan?.message}
               fullWidth
             />
+
             <Input
-              label="Nama Kadus I"
+              label="Nama Staf Administrasi/Tenaga IT"
+              {...register("kaurUmumNTataUsaha", {
+                required: "Nama Staf Administrasi/Tenaga IT wajib diisi",
+              })}
+              error={errors.kaurUmumNTataUsaha?.message}
+              fullWidth
+            />
+
+            <Input
+              label="Nama Tenaga Kebersihan/Umum"
+              {...register("kaurKeuangan", {
+                required: "Nama Tenaga Kebersihan/Umum wajib diisi",
+              })}
+              error={errors.kaurKeuangan?.message}
+              fullWidth
+            />
+
+            <Input
+              label="Nama Staf Pendukung Kelurahan"
+              {...register("kaurPerencanaan", {
+                required: "Nama Staf Pendukung Kelurahan wajib diisi",
+              })}
+              error={errors.kaurPerencanaan?.message}
+              fullWidth
+            />
+
+            <Input
+              label="Nama Staf Pendukung Kelurahan 1"
               {...register("kadus1", {
-                required: "Nama Kadus I wajib diisi",
+                required: "Nama Staf Pendukung Kelurahan 1 wajib diisi",
               })}
               error={errors.kadus1?.message}
               fullWidth
             />
+
             <Input
-              label="Nama Kadus II"
+              label="Nama Staf Pendukung Kelurahan 2"
               {...register("kadus2", {
-                required: "Nama Kadus II Usaha wajib diisi",
+                required: "Nama Staf Pendukung Kelurahan 2 wajib diisi",
               })}
               error={errors.kadus2?.message}
               fullWidth
             />
+
             <Input
-              label="Nama Kadus III"
+              label="Nama Staf Pendukung Kelurahan 3"
               {...register("kadus3", {
-                required: "Nama Kadus III wajib diisi",
+                required: "Nama Staf Pendukung Kelurahan 3 wajib diisi",
               })}
               error={errors.kadus3?.message}
               fullWidth
@@ -373,9 +536,9 @@ const Settings: React.FC = () => {
       {/* Data Backup */}
       <Card title="Backup & Restore Data">
         <p className="text-sm text-gray-700 mb-6">
-          Backup data desa secara berkala untuk menghindari kehilangan data.
+          Backup data kelurahan secara berkala untuk menghindari kehilangan data.
           Data yang dibackup mencakup semua informasi warga, surat, dan
-          pengaturan desa.
+          pengaturan kelurahan.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

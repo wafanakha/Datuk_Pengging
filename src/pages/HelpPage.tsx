@@ -16,14 +16,14 @@ const HelpPage: React.FC = () => {
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-800">Bantuan</h2>
 
-      <Card title="Tentang Datuk Pengging (Data Untuk Penduduk Kedungwringin)">
+      <Card title="Tentang SAPA Arcawinangun (Sistem Administrasi Pelayanan Arcawinangun)">
         <div className="space-y-4">
           <p className="text-gray-700">
-            Sistem Data untuk penduduk kedungwringin adalah aplikasi manajemen
-            administrasi desa yang dirancang khusus untuk perangkat desa di
-            Kedungwringin. Aplikasi ini memungkinkan pengelolaan data warga dan
+            SAPA Arcawinangun adalah aplikasi manajemen
+            administrasi kelurahan yang dirancang khusus untuk perangkat kelurahan di
+            Arcawinangun. Aplikasi ini memungkinkan pengelolaan data warga dan
             pembuatan berbagai jenis surat administratif yang umum dibutuhkan di
-            tingkat desa.
+            tingkat kelurahan.
           </p>
 
           <p className="text-gray-700">
@@ -52,7 +52,7 @@ const HelpPage: React.FC = () => {
             icon={<UserPlus className="h-6 w-6 text-blue-600" />}
             title="Manajemen Data Warga"
             content={`
-              Fitur ini memungkinkan Anda untuk mengelola data penduduk desa, termasuk:
+              Fitur ini memungkinkan Anda untuk mengelola data penduduk kelurahan, termasuk:
               
               - Menambahkan data warga baru
               - Mengedit dan memperbarui data warga
@@ -73,7 +73,7 @@ const HelpPage: React.FC = () => {
               - Surat Keterangan Kelahiran
               - Dan jenis surat lainnya
               
-              Surat akan otomatis terisi dengan data warga yang relevan dan kop surat desa.
+              Surat akan otomatis terisi dengan data warga yang relevan dan kop surat kelurahan.
             `}
           />
 
@@ -105,7 +105,7 @@ const HelpPage: React.FC = () => {
               - Format PDF untuk pencetakan dan distribusi
               - Format DOCX untuk pengeditan lebih lanjut
               
-              Surat yang diekspor akan menyertakan kop surat resmi desa dan dapat ditambahkan tanda tangan digital.
+              Surat yang diekspor akan menyertakan kop surat resmi kelurahan dan dapat ditambahkan tanda tangan digital.
             `}
           />
         </div>
@@ -177,16 +177,24 @@ const HelpPage: React.FC = () => {
           />
 
           <HelpAccordion
-            title="Cara Mengatur Informasi Desa"
+            title="Cara Mengatur Informasi Kelurahan"
             content={`
               1. Buka menu "Pengaturan"
-              2. Isi informasi desa pada bagian "Informasi Desa":
-                 - Nama desa
+              2. Isi informasi kelurahan pada bagian "Informasi Kelurahan":
+                 - Nama kelurahan
                  - Alamat
                  - Kecamatan, Kabupaten/Kota, Provinsi
+                 - Kode Kemendagri
                  - Informasi kontak
-              3. Isi informasi kepala desa pada bagian "Informasi Kepala Desa"
-              4. Unggah logo desa dan tanda tangan kepala desa jika tersedia
+              3. Isi struktur jabatan pada bagian "Informasi Pemerintah Kelurahan":
+                 - Lurah
+                 - Sekretaris Kelurahan (Seklur)
+                 - Kasi Pemerintahan dan Pembangunan
+                 - Kasi Kesejahteraan Sosial (Kesos)
+                 - Kasi Ketentraman dan Ketertiban Umum (Trantib)
+                 - Staf Administrasi/Tenaga IT
+                 - Tenaga Kebersihan/Umum
+              4. Unggah logo kelurahan dan tanda tangan lurah jika tersedia
               5. Klik "Simpan Pengaturan" untuk menyimpan perubahan
               
               Informasi ini akan digunakan dalam kop surat dan bagian lain dari sistem.

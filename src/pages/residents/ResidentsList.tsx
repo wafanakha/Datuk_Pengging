@@ -22,6 +22,7 @@ import AutoSizer from "react-virtualized-auto-sizer";
 const ROW_HEIGHT = 60; // Height of each family member row
 const HEADER_HEIGHT = 80; // Height of family group header
 const GROUP_PADDING = 20; // Additional padding for each group
+const normalizeText = (value: unknown) => String(value ?? "");
 
 const ResidentsList: React.FC = () => {
   const [residents, setResidents] = useState<Resident[]>([]);
@@ -114,9 +115,9 @@ const ResidentsList: React.FC = () => {
 
     const filtered = residents.filter(
       (r) =>
-        r.name.toLowerCase().includes(query.toLowerCase()) ||
-        r.nik.includes(query) ||
-        r.address.toLowerCase().includes(query.toLowerCase())
+        normalizeText(r.name).toLowerCase().includes(query.toLowerCase()) ||
+        normalizeText(r.nik).includes(query) ||
+        normalizeText(r.address).toLowerCase().includes(query.toLowerCase())
     );
     groupResidentsByKK(filtered);
   };

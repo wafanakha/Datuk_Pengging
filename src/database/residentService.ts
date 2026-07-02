@@ -1,155 +1,222 @@
-import { db } from './db';
-import { Resident, CustomField, ResidentCustomField } from '../types';
+import { supabase, toCamel, toSnake } from "./supabaseClient";
+import { Resident, CustomField, ResidentCustomField } from "../types";
 
 export const residentService = {
   getAllResidents: async () => {
-    return db.residents.toArray();
+    const { data, error } = await supabase
+      .from("residents")
+      .select("*")
+      .order("name", { ascending: true });
+    if (error) throw error;
+    return toCamel(data) || [];
   },
 
   getResidentById: async (id: number) => {
-    return db.residents.get(id);
+    const { data, error } = await supabase
+      .from("residents")
+      .select("*")
+      .eq("id", id)
+      .single();
+    if (error) return undefined;
+    return toCamel(data);
   },
 
   getResidentByNik: async (nik: string) => {
-    return db.residents.where('nik').equals(nik).first();
+    const { data, error } = await supabase
+      .from("residents")
+      .select("*")
+      .eq("nik", nik)
+      .maybeSingle();
+    if (error) return undefined;
+    return toCamel(data);
   },
 
   searchResidents: async (query: string) => {
-    // Convert query to lowercase for case-insensitive search
-    const lowerQuery = query.toLowerCase();
-    
-    return db.residents
-      .filter(resident => 
-        resident.name.toLowerCase().includes(lowerQuery) || 
-        resident.nik.includes(query) ||
-        resident.address.toLowerCase().includes(lowerQuery)
-      )
-      .toArray();
+    const { data, error } = await supabase
+      .from("residents")
+      .select("*")
+      .or(`name.ilike.%${query}%,nik.ilike.%${query}%,address.ilike.%${query}%`)
+      .order("name", { ascending: true });
+    if (error) throw error;
+    return toCamel(data) || [];
   },
 
   addResident: async (resident: Resident) => {
-    const existingResident = await db.residents.where('nik').equals(resident.nik).first();
+    const existingResident = await residentService.getResidentByNik(
+      resident.nik
+    );
     if (existingResident) {
-      throw new Error('NIK sudah terdaftar');
+      throw new Error("NIK sudah terdaftar");
     }
-    
-    const now = new Date();
-    return db.residents.add({
+
+    const now = new Date().toISOString();
+    const residentSnake = toSnake({
       ...resident,
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
     });
+    delete residentSnake.id;
+
+    const { data, error } = await supabase
+      .from("residents")
+      .insert(residentSnake)
+      .select()
+      .single();
+    if (error) throw error;
+    return toCamel(data).id;
   },
 
   updateResident: async (id: number, resident: Partial<Resident>) => {
-    // If NIK is being changed, check if the new NIK exists for another resident
     if (resident.nik) {
-      const existingResident = await db.residents.where('nik').equals(resident.nik).first();
+      const existingResident = await residentService.getResidentByNik(
+        resident.nik
+      );
       if (existingResident && existingResident.id !== id) {
-        throw new Error('NIK sudah terdaftar oleh warga lain');
+        throw new Error("NIK sudah terdaftar oleh warga lain");
       }
     }
-    
-    await db.residents.update(id, {
+
+    const now = new Date().toISOString();
+    const residentSnake = toSnake({
       ...resident,
-      updatedAt: new Date()
+      updatedAt: now,
     });
-    
-    return db.residents.get(id);
+    delete residentSnake.id;
+
+    const { data, error } = await supabase
+      .from("residents")
+      .update(residentSnake)
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return toCamel(data);
   },
 
   deleteResident: async (id: number) => {
-    // Check if there are letters associated with this resident
-    const associatedLetters = await db.letters.where('residentId').equals(id).count();
-    if (associatedLetters > 0) {
-      throw new Error('Tidak dapat menghapus warga karena masih memiliki dokumen surat terkait');
+    const { count, error: countError } = await supabase
+      .from("letters")
+      .select("*", { count: "exact", head: true })
+      .eq("resident_id", id);
+    if (countError) throw countError;
+    if (count && count > 0) {
+      throw new Error(
+        "Tidak dapat menghapus warga karena masih memiliki dokumen surat terkait"
+      );
     }
-    
-    // Delete associated custom fields
-    await db.residentCustomFields.where('residentId').equals(id).delete();
-    
-    // Delete resident
-    return db.residents.delete(id);
+
+    await supabase
+      .from("resident_custom_fields")
+      .delete()
+      .eq("resident_id", id);
+
+    const { error } = await supabase.from("residents").delete().eq("id", id);
+    if (error) throw error;
+    return true;
   },
 
-  // Custom fields management
   getCustomFields: async () => {
-    return db.customFields.toArray();
+    const { data, error } = await supabase
+      .from("custom_fields")
+      .select("*")
+      .order("name", { ascending: true });
+    if (error) throw error;
+    return toCamel(data) || [];
   },
 
   addCustomField: async (field: CustomField) => {
-    const existingField = await db.customFields.where('name').equals(field.name).first();
-    if (existingField) {
-      throw new Error('Nama field sudah ada');
+    const { data, error } = await supabase
+      .from("custom_fields")
+      .insert(toSnake(field))
+      .select()
+      .single();
+    if (error) {
+      if (error.code === "23505") {
+        throw new Error("Nama field sudah ada");
+      }
+      throw error;
     }
-    
-    return db.customFields.add(field);
+    return toCamel(data).id;
   },
 
   updateCustomField: async (id: number, field: Partial<CustomField>) => {
-    if (field.name) {
-      const existingField = await db.customFields.where('name').equals(field.name).first();
-      if (existingField && existingField.id !== id) {
-        throw new Error('Nama field sudah ada');
+    const { data, error } = await supabase
+      .from("custom_fields")
+      .update(toSnake(field))
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) {
+      if (error.code === "23505") {
+        throw new Error("Nama field sudah ada");
       }
+      throw error;
     }
-    
-    await db.customFields.update(id, field);
-    return db.customFields.get(id);
+    return toCamel(data);
   },
 
   deleteCustomField: async (id: number) => {
-    // Delete all resident values for this field
-    await db.residentCustomFields.where('customFieldId').equals(id).delete();
-    
-    // Delete the field itself
-    return db.customFields.delete(id);
+    await supabase
+      .from("resident_custom_fields")
+      .delete()
+      .eq("custom_field_id", id);
+
+    const { error } = await supabase.from("custom_fields").delete().eq("id", id);
+    if (error) throw error;
+    return true;
   },
 
-  // Resident custom field values
   getResidentCustomFields: async (residentId: number) => {
-    return db.residentCustomFields
-      .where('residentId')
-      .equals(residentId)
-      .toArray();
+    const { data, error } = await supabase
+      .from("resident_custom_fields")
+      .select("*")
+      .eq("resident_id", residentId);
+    if (error) throw error;
+    return toCamel(data) || [];
   },
 
-  setResidentCustomField: async (residentId: number, customFieldId: number, value: string) => {
-    const existing = await db.residentCustomFields
-      .where('residentId')
-      .equals(residentId)
-      .and(item => item.customFieldId === customFieldId)
-      .first();
-    
-    if (existing) {
-      await db.residentCustomFields.update(existing.id!, { value });
-      return existing.id;
-    } else {
-      return db.residentCustomFields.add({
-        residentId,
-        customFieldId,
-        value
-      });
-    }
+  setResidentCustomField: async (
+    residentId: number,
+    customFieldId: number,
+    value: string
+  ) => {
+    const { data, error } = await supabase
+      .from("resident_custom_fields")
+      .upsert(
+        toSnake({
+          residentId,
+          customFieldId,
+          value,
+        }),
+        { onConflict: "resident_id,custom_field_id" }
+      )
+      .select()
+      .single();
+    if (error) throw error;
+    return toCamel(data).id;
   },
 
-  // Cari KK dan anggota keluarga berdasarkan query KK
   searchKk: async (query: string) => {
-    const lowerQuery = query.toLowerCase();
-    // Ambil semua warga yang KK-nya mengandung query
-    const residents = await db.residents
-      .filter(r => r.kk.toLowerCase().includes(lowerQuery))
-      .toArray();
-    // Kelompokkan per KK
+    const { data, error } = await supabase
+      .from("residents")
+      .select("*")
+      .ilike("kk", `%${query}%`);
+    if (error) throw error;
+    const residents: Resident[] = toCamel(data) || [];
+
     const grouped: Record<string, Resident[]> = {};
-    residents.forEach(r => {
-      if (!grouped[r.kk]) grouped[r.kk] = [];
-      grouped[r.kk].push(r);
+    residents.forEach((r) => {
+      const kk = String(r.kk ?? "");
+      if (!grouped[kk]) grouped[kk] = [];
+      grouped[kk].push(r);
     });
-    // Format hasil: [{ kk, headName, members: [...] }]
+
     return Object.entries(grouped).map(([kk, members]) => ({
       kk,
-      headName: members.find(m => m.shdk === 'Kepala Keluarga')?.name || members[0]?.name || '-',
+      headName:
+        members.find((m) => m.shdk === "Kepala Keluarga")?.name ||
+        members[0]?.name ||
+        "-",
       members,
     }));
   },

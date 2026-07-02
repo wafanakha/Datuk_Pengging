@@ -128,10 +128,10 @@ const CreateKematianLetter: React.FC = () => {
     doc.setFontSize(12);
     // Header
     doc.setFontSize(10);
-    doc.text("KANTOR DESA", 10, 16);
+    doc.text("KANTOR KELURAHAN", 10, 16);
     doc.text(": Kedungwiringin", 50, 16);
     doc.text("KECAMATAN", 10, 22);
-    doc.text(": Patikraja", 50, 22);
+    doc.text(": Purwokerto Timur", 50, 22);
     doc.text("KABUPATEN", 10, 28);
     doc.text(": Banyumas", 50, 28);
     doc.setFontSize(12);
@@ -244,7 +244,7 @@ const CreateKematianLetter: React.FC = () => {
     // Tanggal, jabatan, tanda tangan
     yB += 10;
     doc.text(
-      `Kedungwringin, ${new Date().toLocaleDateString("id-ID", {
+      `Arcawinangun, ${new Date().toLocaleDateString("id-ID", {
         day: "2-digit",
         month: "long",
         year: "numeric",
@@ -254,14 +254,14 @@ const CreateKematianLetter: React.FC = () => {
       { align: "right" }
     );
     yB += 6;
-    if (signer && !signer.jabatan.toLowerCase().includes("kepala desa")) {
-      doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 35, yB, {
+    if (signer && !signer.jabatan.toLowerCase().includes("lurah")) {
+      doc.text("An. LURAH ARCAWINANGUN", pageWidth - 35, yB, {
         align: "center",
       });
       yB += 6;
     }
     doc.text(
-      signer?.jabatan?.toUpperCase() || "KASI PEMERINTAH",
+      signer?.jabatan?.toUpperCase() || "Kasi Pemerintahan dan Pembangunan",
       pageWidth - 35,
       yB,
       { align: "center" }
@@ -319,17 +319,17 @@ const CreateKematianLetter: React.FC = () => {
   const perangkatFallback: { nama: string; jabatan: string }[] = [];
   if (villageInfo) {
     const perangkatMap: Record<string, string> = {
-      leaderName: "Kepala Desa",
-      sekretaris: "Sekretaris Desa",
-      kaurUmumNTataUsaha: "Kaur Umum & Tata Usaha",
-      kaurKeuangan: "Kaur Keuangan",
-      kaurPerencanaan: "Kaur Perencanaan",
-      kasipemerintah: "Kasi Pemerintahan",
-      kasiKesejahteraan: "Kasi Kesejahteraan",
-      kasiPelayanan: "Kasi Pelayanan",
-      kadus1: "Kepala Dusun I",
-      kadus2: "Kepala Dusun II",
-      kadus3: "Kepala Dusun III",
+      leaderName: "Lurah",
+      sekretaris: "Sekretaris Kelurahan (Seklur)",
+      kaurUmumNTataUsaha: "Staf Administrasi/Tenaga IT",
+      kaurKeuangan: "Tenaga Kebersihan/Umum",
+      kaurPerencanaan: "Staf Operasional Kelurahan",
+      kasipemerintah: "Kasi Pemerintahan dan Pembangunan",
+      kasiKesejahteraan: "Kasi Kesejahteraan Sosial (Kesos)",
+      kasiPelayanan: "Kasi Ketentraman dan Ketertiban Umum (Trantib)",
+      kadus1: "Staf Kelurahan I",
+      kadus2: "Staf Kelurahan II",
+      kadus3: "Staf Kelurahan III",
     };
     Object.entries(perangkatMap).forEach(([field, jabatan]) => {
       const nama = villageInfo[field];
@@ -346,9 +346,9 @@ const CreateKematianLetter: React.FC = () => {
 
   React.useEffect(() => {
     if (perangkatFallback.length > 0) {
-      // Default: Kepala Desa jika ada, jika tidak perangkat pertama
+      // Default: Lurah jika ada, jika tidak perangkat pertama
       const kepalaDesa = perangkatFallback.find((p) =>
-        p.jabatan.toLowerCase().includes("kepala desa")
+        p.jabatan.toLowerCase().includes("lurah")
       );
       setSigner(kepalaDesa || perangkatFallback[0]);
     }
@@ -619,8 +619,8 @@ const CreateKematianLetter: React.FC = () => {
         <div className="text-center mb-2">
           Nomor: {form.nomorSurat || "........"}
         </div>
-        <div className="mb-2">KANTOR DESA: Kedungwiringin</div>
-        <div className="mb-2">KECAMATAN: Patikraja</div>
+        <div className="mb-2">KANTOR KELURAHAN: Kedungwiringin</div>
+        <div className="mb-2">KECAMATAN: Purwokerto Timur</div>
         <div className="mb-2">KABUPATEN: Banyumas</div>
         <div className="mb-4">
           Yang bertanda tangan di bawah ini menerangkan dengan sesungguhnya
@@ -743,10 +743,10 @@ const CreateKematianLetter: React.FC = () => {
               {form.suratDate &&
                 new Date(form.suratDate).toLocaleDateString("id-ID")}
             </div>
-            {/* Jika bukan kepala desa, tampilkan An. KEPALA DESA KEDUNGWRINGIN */}
+            {/* Jika bukan lurah, tampilkan An. LURAH ARCAWINANGUN */}
             {signer &&
-              !signer.jabatan.toLowerCase().includes("kepala desa") && (
-                <div className="font-bold">An. KEPALA DESA KEDUNGWRINGIN</div>
+              !signer.jabatan.toLowerCase().includes("lurah") && (
+                <div className="font-bold">An. LURAH ARCAWINANGUN</div>
               )}
             <div className="font-bold">
               {signer?.jabatan?.toUpperCase() ||

@@ -171,31 +171,31 @@ const CreateWaliNikahLetter: React.FC<{
     // Header
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
-    doc.text("PEMERINTAHAN DESA KEDUNGWRINGIN", pageWidth / 2, y, {
+    doc.text("PEMERINTAHAN KELURAHAN ARCAWINANGUN", pageWidth / 2, y, {
       align: "center",
     });
     y += 5;
-    doc.text("KECAMATAN PATIKRAJA KABUPATEN BANYUMAS", pageWidth / 2, y, {
+    doc.text("KECAMATAN PURWOKERTO TIMUR KABUPATEN BANYUMAS", pageWidth / 2, y, {
       align: "center",
     });
     y += 5;
-    doc.text("SEKRETARIAT DESA", pageWidth / 2, y, { align: "center" });
+    doc.text("SEKRETARIAT KELURAHAN", pageWidth / 2, y, { align: "center" });
     y += 5;
     doc.text(
-      "Jl. Raya Kedungwringin No. 1 Kedungwringin Kode Pos 53171",
+      "Jl. Balai Kelurahan No.32, Arcawinangun, Kec. Purwokerto Tim., Kabupaten Banyumas, Jawa Tengah 53113",
       pageWidth / 2,
       y,
       { align: "center" }
     );
     y += 5;
-    doc.text("Telp. (0281) 638395", pageWidth / 2, y, { align: "center" });
+    doc.text("Telp. -", pageWidth / 2, y, { align: "center" });
     y += 6;
     doc.setLineWidth(0.8);
     doc.line(15, y, pageWidth - 15, y);
     y += 5;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.text("Kode Desa: 02122013", 15, y);
+    doc.text("Kode Kemendagri: 33.02.26.1006 | Kode BPS: 3302730006", 15, y);
     y += 6;
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
@@ -210,7 +210,7 @@ const CreateWaliNikahLetter: React.FC<{
     );
     y += 5;
     doc.text(
-      "     Yang bertanda tangan di bawah ini kami Kepala Desa Kedungwringin Kecamatan Patikraja",
+      "     Yang bertanda tangan di bawah ini kami Lurah Arcawinangun Kecamatan Purwokerto Timur",
       20,
       y
     );
@@ -297,12 +297,12 @@ const CreateWaliNikahLetter: React.FC<{
     );
     y += 7;
     doc.text(
-      `Kedungwringin, ${new Date().toLocaleDateString("id-ID")}`,
+      `Arcawinangun, ${new Date().toLocaleDateString("id-ID")}`,
       140,
       y
     );
     y += 7;
-    doc.text("Kepala Desa Kedungwringin", 140, y);
+    doc.text("Lurah Arcawinangun", 140, y);
     y += 30;
     doc.text(
       kepalaDesa ||
@@ -576,8 +576,8 @@ const CreateWaliNikahLetter: React.FC<{
           </p>
           <div style={{ marginTop: 30 }}>
             <p>
-              Yang bertanda tangan di bawah ini kami Kepala Desa Kedungwringin
-              Kecamatan Patikraja
+              Yang bertanda tangan di bawah ini kami Lurah Arcawinangun
+              Kecamatan Purwokerto Timur
               <br />
               Kabupaten Banyumas Provinsi Jawa Tengah, menerangkan bahwa :
             </p>
@@ -652,7 +652,7 @@ const CreateWaliNikahLetter: React.FC<{
                   key={idx}
                   style={{
                     fontWeight: form.hubunganWali === opt ? "bold" : "normal",
-                    color: form.hubunganWali === opt ? "#0d9488" : undefined,
+                    color: form.hubunganWali === opt ? "#d81717" : undefined,
                   }}
                 >
                   {opt}
@@ -668,8 +668,8 @@ const CreateWaliNikahLetter: React.FC<{
               dapat dipergunakan seperlunya.
             </p>
             <div style={{ marginTop: 40, textAlign: "right", marginRight: 40 }}>
-              <p>Kedungwringin, {new Date().toLocaleDateString("id-ID")}</p>
-              <p>Kepala Desa Kedungwringin</p>
+              <p>Arcawinangun, {new Date().toLocaleDateString("id-ID")}</p>
+              <p>Lurah Arcawinangun</p>
               <div style={{ minHeight: 70 }}></div>
               <p>
                 <strong>

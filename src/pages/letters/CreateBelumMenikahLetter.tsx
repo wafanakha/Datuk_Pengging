@@ -100,7 +100,7 @@ const generatePDF = (
   y += 10;
   doc.text("Mengetahui", pageWidth / 2 - 15, y, { align: "center" });
   y += 7;
-  doc.text(`Kepala Desa ${village.name}`, pageWidth / 2 - 40, y, {
+  doc.text(`Lurah ${village.name}`, pageWidth / 2 - 40, y, {
     align: "left",
   });
   y += 30;
@@ -160,7 +160,7 @@ const CreateBelumMenikahLetter: React.FC = () => {
         (r) => String(r.id) === String(form.residentId)
       );
       if (!resident) throw new Error("Warga tidak ditemukan");
-      if (!village) throw new Error("Data desa tidak ditemukan");
+      if (!village) throw new Error("Data kelurahan tidak ditemukan");
       // Pastikan semua field penting terisi
       const requiredFields = [
         "name",
@@ -203,7 +203,7 @@ const CreateBelumMenikahLetter: React.FC = () => {
       (r) => String(r.id) === String(form.residentId)
     );
     if (!resident || !village) {
-      toast.error("Lengkapi data warga dan desa terlebih dahulu");
+      toast.error("Lengkapi data warga dan kelurahan terlebih dahulu");
       return;
     }
     try {
@@ -247,7 +247,7 @@ const CreateBelumMenikahLetter: React.FC = () => {
       (r) => String(r.id) === String(form.residentId)
     );
     if (!resident || !village) {
-      toast.error("Lengkapi data warga dan desa terlebih dahulu");
+      toast.error("Lengkapi data warga dan kelurahan terlebih dahulu");
       return;
     }
     try {
@@ -508,7 +508,7 @@ const CreateBelumMenikahLetter: React.FC = () => {
           </div>
           <div className="mt-8">
             <div>Mengetahui,</div>
-            <div>Kepala Desa {village.name}</div>
+            <div>Lurah {village.name}</div>
             <div style={{ minHeight: 50 }}></div>
             <div className="font-bold underline">{village.leaderName}</div>
           </div>
@@ -545,24 +545,24 @@ const CreateBelumMenikahLetter: React.FC = () => {
                   style={{ textAlign: "center", flex: 1 }}
                 >
                   <div className="bold" style={{ fontWeight: "bold" }}>
-                    PEMERINTAHAN DESA KEDUNGWRINGIN
+                    PEMERINTAHAN KELURAHAN ARCAWINANGUN
                   </div>
                   <div className="bold" style={{ fontWeight: "bold" }}>
-                    KECAMATAN PATIKRAJA KABUPATEN BANYUMAS
+                    KECAMATAN PURWOKERTO TIMUR KABUPATEN BANYUMAS
                   </div>
                   <div className="bold" style={{ fontWeight: "bold" }}>
-                    SEKRETARIAT DESA
+                    SEKRETARIAT KELURAHAN
                   </div>
                   <div className="bold" style={{ fontWeight: "bold" }}>
-                    Jl. Raya Kedungwringin No. 1 Kedungwringin Kode Pos 53171
+                    Jl. Balai Kelurahan No.32, Arcawinangun, Kec. Purwokerto Tim., Kabupaten Banyumas, Jawa Tengah 53113
                   </div>
                   <div className="bold" style={{ fontWeight: "bold" }}>
-                    Telp. (0281) 638395
+                    Telp. -
                   </div>
                 </div>
               </div>
               <hr style={{ border: "1px solid black", marginTop: 10 }} />
-              <p>Kode Desa: 02122013</p>
+              <p>Kode Kemendagri: 33.02.26.1006 | Kode BPS: 3302730006</p>
               <h2
                 style={{
                   textAlign: "center",
@@ -671,7 +671,7 @@ const CreateBelumMenikahLetter: React.FC = () => {
               </div>
               <div style={{ marginTop: 40 }}>
                 <p>Mengetahui,</p>
-                <p>Kepala Desa {village.name}</p>
+                <p>Lurah {village.name}</p>
                 <div style={{ minHeight: 50 }}></div>
                 <p>
                   <strong>{village.leaderName}</strong>
@@ -679,7 +679,7 @@ const CreateBelumMenikahLetter: React.FC = () => {
               </div>
             </div>
           ) : (
-            <p>Lengkapi data warga dan desa untuk preview.</p>
+            <p>Lengkapi data warga dan kelurahan untuk preview.</p>
           )}
         </div>
       </Modal>

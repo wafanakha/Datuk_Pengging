@@ -12,12 +12,12 @@ module.exports = {
     {
       name: "@electron-forge/maker-squirrel",
       config: {
-        name: "datuk_pengging",
+        name: "sapa_arcawinangun",
         setupIcon: "./asset/logo-bms.ico",
         iconUrl:
           "https://github.com/wafanakha/sistemDesa/blob/master/asset/logo-bms.ico",
       },
-      shortcutName: "Datuk Pengging",
+      shortcutName: "SAPA Arcawinangun",
     },
     {
       name: "@electron-forge/maker-zip",

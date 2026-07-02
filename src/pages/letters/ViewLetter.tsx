@@ -293,8 +293,8 @@ const ViewLetter: React.FC = () => {
           <div className="text-center mb-6">
             <h3 className="text-lg font-bold uppercase">PEMERINTAH {villageInfo?.regencyName || 'KABUPATEN'}</h3>
             <h3 className="text-lg font-bold uppercase">KECAMATAN {villageInfo?.districtName || 'KECAMATAN'}</h3>
-            <h3 className="text-xl font-bold uppercase mb-1">DESA {villageInfo?.name || 'DESA'}</h3>
-            <p className="text-sm">{villageInfo?.address || 'Alamat Desa'}</p>
+            <h3 className="text-xl font-bold uppercase mb-1">KELURAHAN {villageInfo?.name || 'KELURAHAN'}</h3>
+            <p className="text-sm">{villageInfo?.address || 'Alamat Kelurahan'}</p>
             <div className="border-t-2 border-black mt-2 pt-1 mx-auto" style={{ borderBottomWidth: '1px' }}></div>
           </div>
           
@@ -308,10 +308,10 @@ const ViewLetter: React.FC = () => {
           </div>
           
           <div className="text-right mt-8">
-            <p>{villageInfo?.name || 'Desa'}, {formatDate(letter.issuedDate)}</p>
-            <p>{villageInfo?.leaderTitle || 'Kepala Desa'}</p>
+            <p>{villageInfo?.name || 'Kelurahan'}, {formatDate(letter.issuedDate)}</p>
+            <p>{villageInfo?.leaderTitle || 'Lurah'}</p>
             <div className="h-16"></div>
-            <p className="font-bold">{villageInfo?.leaderName || 'Nama Kepala Desa'}</p>
+            <p className="font-bold">{villageInfo?.leaderName || 'Nama Lurah'}</p>
           </div>
         </div>
         

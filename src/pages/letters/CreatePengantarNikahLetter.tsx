@@ -38,9 +38,9 @@ function generateFormulirPengantarNikahN1(form: any, village: VillageInfo) {
   doc.setFontSize(10);
   doc.text("FORMULIR PENGANTAR NIKAH", 65, 12);
   doc.setFontSize(9);
-  doc.text(`KANTOR DESA/KEL    : ${village.name}`, 10, 20);
+  doc.text(`KANTOR KELURAHAN/KEL    : ${village.name}`, 10, 20);
   doc.text(
-    `KECAMATAN          : ${village.districtName || "Patikraja"}`,
+    `KECAMATAN          : ${village.districtName || "Purwokerto Timur"}`,
     10,
     26
   );
@@ -153,7 +153,7 @@ function generateFormulirPengantarNikahN1(form: any, village: VillageInfo) {
     130,
     y + 185
   );
-  doc.text("Kepala Desa Kedungwiringin", 130, y + 190);
+  doc.text("Lurah Kedungwiringin", 130, y + 190);
   doc.text(village.leaderName || "", 140, y + 210);
   return doc;
 }
@@ -213,7 +213,7 @@ const CreatePengantarNikahLetter: React.FC = () => {
   const handleExportPdf = async () => {
     if (!form.resident.nik || !form.ayah.nik || !form.ibu.nik)
       return toast.error("Lengkapi data yang menikah, ayah, dan ibu!");
-    if (!village) return toast.error("Data desa belum lengkap");
+    if (!village) return toast.error("Data kelurahan belum lengkap");
     const doc = generateFormulirPengantarNikahN1(form, village);
     doc.save("surat-pengantar-nikah");
     const historyEntry: LetterHistory = {
@@ -227,7 +227,7 @@ const CreatePengantarNikahLetter: React.FC = () => {
   const handlePrintPdf = async () => {
     if (!form.resident.nik || !form.ayah.nik || !form.ibu.nik)
       return toast.error("Lengkapi data yang menikah, ayah, dan ibu!");
-    if (!village) return toast.error("Data desa belum lengkap");
+    if (!village) return toast.error("Data kelurahan belum lengkap");
     const doc = generateFormulirPengantarNikahN1(form, village);
     window.open(doc.output("bloburl"), "_blank");
     const historyEntry: LetterHistory = {
@@ -560,7 +560,7 @@ const CreatePengantarNikahLetter: React.FC = () => {
             FORMULIR PENGANTAR NIKAH
           </div>
           <div className="text-center text-sm mb-2">Model N1</div>
-          <div className="mb-2">KANTOR DESA/KEL: {village.name}</div>
+          <div className="mb-2">KANTOR KELURAHAN/KEL: {village.name}</div>
           <div className="mb-2">KECAMATAN: {village.districtName}</div>
           <div className="mb-2">KABUPATEN: {village.regencyName}</div>
           <div className="mb-2">Nomor Surat: {form.letterNumber}</div>
@@ -732,7 +732,7 @@ const CreatePengantarNikahLetter: React.FC = () => {
                 {form.issuedDate &&
                   new Date(form.issuedDate).toLocaleDateString("id-ID")}
               </div>
-              <div className="font-bold">Kepala Desa {village.name}</div>
+              <div className="font-bold">Lurah {village.name}</div>
               <div style={{ height: "60px" }}></div>
               <div className="font-bold underline">
                 {village.leaderName || "(................................)"}
@@ -756,7 +756,7 @@ const CreatePengantarNikahLetter: React.FC = () => {
               {JSON.stringify(
                 {
                   ...form,
-                  desa: village,
+                  kelurahan: village,
                 },
                 null,
                 2

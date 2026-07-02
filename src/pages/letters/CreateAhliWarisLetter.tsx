@@ -66,17 +66,17 @@ const CreateAhliWarisLetter: React.FC = () => {
       // Helper: perangkat fallback dari pengaturan Settings
       const fallback: { nama: string; jabatan: string }[] = [];
       const perangkatMap: Record<string, string> = {
-        leaderName: "Kepala Desa",
-        sekretaris: "Sekretaris Desa",
-        kaurUmumNTataUsaha: "Kaur Umum & Tata Usaha",
-        kaurKeuangan: "Kaur Keuangan",
-        kaurPerencanaan: "Kaur Perencanaan",
-        kasipemerintah: "Kasi Pemerintahan",
-        kasiKesejahteraan: "Kasi Kesejahteraan",
-        kasiPelayanan: "Kasi Pelayanan",
-        kadus1: "Kepala Dusun I",
-        kadus2: "Kepala Dusun II",
-        kadus3: "Kepala Dusun III",
+        leaderName: "Lurah",
+        sekretaris: "Sekretaris Kelurahan (Seklur)",
+        kaurUmumNTataUsaha: "Staf Administrasi/Tenaga IT",
+        kaurKeuangan: "Tenaga Kebersihan/Umum",
+        kaurPerencanaan: "Staf Operasional Kelurahan",
+        kasipemerintah: "Kasi Pemerintahan dan Pembangunan",
+        kasiKesejahteraan: "Kasi Kesejahteraan Sosial (Kesos)",
+        kasiPelayanan: "Kasi Ketentraman dan Ketertiban Umum (Trantib)",
+        kadus1: "Staf Kelurahan I",
+        kadus2: "Staf Kelurahan II",
+        kadus3: "Staf Kelurahan III",
       };
       Object.entries(perangkatMap).forEach(([field, jabatan]) => {
         const nama = info[field];
@@ -87,9 +87,9 @@ const CreateAhliWarisLetter: React.FC = () => {
       setPerangkatFallback(fallback);
 
       if (fallback.length > 0) {
-        // Default: Kepala Desa jika ada, jika tidak perangkat pertama
+        // Default: Lurah jika ada, jika tidak perangkat pertama
         const kepalaDesa = fallback.find((p) =>
-          p.jabatan.toLowerCase().includes("kepala desa")
+          p.jabatan.toLowerCase().includes("lurah")
         );
         setSigner(kepalaDesa || fallback[0]);
       }
@@ -176,12 +176,12 @@ const CreateAhliWarisLetter: React.FC = () => {
     doc.setFont("Times", "Bold");
     doc.setFontSize(12);
     doc.text("PEMERINTAH KABUPATEN BANYUMAS", 105, 17, { align: "center" });
-    doc.text("KECAMATAN PATIKRAJA", 105, 23, { align: "center" });
-    doc.text("KEPALA DESA KEDUNGWRINGIN", 105, 29, { align: "center" });
+    doc.text("KECAMATAN PURWOKERTO TIMUR", 105, 23, { align: "center" });
+    doc.text("LURAH ARCAWINANGUN", 105, 29, { align: "center" });
     doc.setFontSize(10);
     doc.setFont("Times", "Normal");
     doc.text(
-      "Jalan Raya Kedungwringin No. 01 Telp. 0281 6438935 Kode Pos    53171",
+      "Jl. Balai Kelurahan No.32, Arcawinangun, Kec. Purwokerto Tim., Kabupaten Banyumas, Jawa Tengah 53113",
       105,
       35,
       { align: "center" }
@@ -206,7 +206,7 @@ const CreateAhliWarisLetter: React.FC = () => {
     doc.text(": PARMINAH", 60, y);
     y += 6;
     doc.text("Jabatan", 30, y);
-    doc.text(": Kepala Desa Kedungwringin", 60, y);
+    doc.text(": Lurah Arcawinangun", 60, y);
     y += 8;
     doc.text("Dengan ini menerangkan dengan sebenarnya, Bahwa :", 20, y);
     y += 7;
@@ -309,7 +309,7 @@ const CreateAhliWarisLetter: React.FC = () => {
     doc.text("sebagaimana mestinya.", 20, y);
     y += 12;
     doc.text(
-      `Kedungwringin, ${new Date().toLocaleDateString("id-ID", {
+      `Arcawinangun, ${new Date().toLocaleDateString("id-ID", {
         day: "2-digit",
         month: "long",
         year: "numeric",
@@ -319,14 +319,14 @@ const CreateAhliWarisLetter: React.FC = () => {
       { align: "right" }
     );
     y += 6;
-    if (signer && !signer.jabatan.toLowerCase().includes("kepala desa")) {
-      doc.text("An. KEPALA DESA KEDUNGWRINGIN", pageWidth - 35, y, {
+    if (signer && !signer.jabatan.toLowerCase().includes("lurah")) {
+      doc.text("An. LURAH ARCAWINANGUN", pageWidth - 35, y, {
         align: "center",
       });
       y += 6;
     }
     doc.text(
-      signer?.jabatan?.toUpperCase() || "KASI PEMERINTAH",
+      signer?.jabatan?.toUpperCase() || "Kasi Pemerintahan dan Pembangunan",
       pageWidth - 35,
       y,
       { align: "center" }
@@ -652,15 +652,15 @@ const CreateAhliWarisLetter: React.FC = () => {
         <div className="flex items-center mb-2">
           <img src={logo} alt="Logo Instansi" className="h-24 mr-4" />
           <div className="text-center w-full">
-            <div className="font-bold">PEMERINTAHAN DESA KEDUNGWRINGIN</div>
+            <div className="font-bold">PEMERINTAHAN KELURAHAN ARCAWINANGUN</div>
             <div className="font-bold">
-              KECAMATAN PATIKRAJA KABUPATEN BANYUMAS
+              KECAMATAN PURWOKERTO TIMUR KABUPATEN BANYUMAS
             </div>
-            <div className="font-bold">SEKRETARIAT DESA</div>
+            <div className="font-bold">SEKRETARIAT KELURAHAN</div>
             <div className="font-bold">
-              Jl. Raya Kedungwringin No. 1 Kedungwringin Kode Pos 53171
+              Jl. Balai Kelurahan No.32, Arcawinangun, Kec. Purwokerto Tim., Kabupaten Banyumas, Jawa Tengah 53113
             </div>
-            <div className="font-bold">Telp. (0281) 638395</div>
+            <div className="font-bold">Telp. -</div>
           </div>
         </div>
         <hr className="border-t-2 border-black my-2" />
@@ -685,7 +685,7 @@ const CreateAhliWarisLetter: React.FC = () => {
               <tr>
                 <td>Jabatan</td>
                 <td>:</td>
-                <td>Kepala Desa Kedungwringin</td>
+                <td>Lurah Arcawinangun</td>
               </tr>
             </tbody>
           </table>
@@ -758,14 +758,14 @@ const CreateAhliWarisLetter: React.FC = () => {
           Dan untuk dapat dipergunakan sebagaimana mestinya.
         </div>
         <div style={{ textAlign: "right", marginTop: 40 }}>
-          Kedungwringin,{" "}
+          Arcawinangun,{" "}
           {new Date().toLocaleDateString("id-ID", {
             day: "2-digit",
             month: "long",
             year: "numeric",
           })}
           <br />
-          <b>Kepala Desa</b>
+          <b>Lurah</b>
           <div style={{ minHeight: 70 }}></div>
           <b>PARMINAH</b>
         </div>
